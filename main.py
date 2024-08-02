@@ -1,8 +1,12 @@
 import requests as res
 import multiprocessing
 
-vector = input("url:\n").split(" ")
-bye = bytes(10**3)
+choices = ['volume based attack', 'protocol attack', 'application layer attack']
+
+
+vector = input("target(targets):\n").split(" ")
+bye = input("number of bytes: \n").encode()
+#print(bye)
 
 def http():
     while True:
