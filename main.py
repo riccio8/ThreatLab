@@ -1,12 +1,21 @@
 import requests as res
 import multiprocessing
 
-choices = ['volume based attack', 'protocol attack', 'application layer attack']
+choices = [1, 2, 3]
 
-
+attack_type = int(input("choose a type of attack: \n volume based attack(1), protocol attack(2), application layer attack(3)\n"))
 vector = input("target(targets):\n").split(" ")
 bye = input("number of bytes: \n").encode()
-#print(bye)
+
+
+if attack_type == choices[0]:
+    print(bye)
+    
+if attack_type == choices[1]:
+    print(vector)
+
+if attack_type == choices[2]:
+    print(attack_type)
 
 def http():
     while True:
