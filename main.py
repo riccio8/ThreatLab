@@ -63,3 +63,4 @@ quale tipo di attacco si vuole fare visto che poi quando li divido nei multi pro
 presente nella classe.
 Le classi sono suddivise tra i vai tipi di attachi, le quali a  lroo volta contengono i sotto type, bisogna fare in modo che si possibile ricevere il nome 
 del metodo che si sta usando, SOLO LA FUNZIONE POST è già COMPLETA, ma la si puù ancora ottimizzare
+"""
