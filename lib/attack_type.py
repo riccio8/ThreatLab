@@ -1,7 +1,5 @@
 import requests as res
 
-var vector
-var bye
 
 def udp_flooding(i):
     print("first choice")
