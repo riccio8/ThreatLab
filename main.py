@@ -3,7 +3,7 @@ import threading as th
 import time
 import sys
 import os
-import lib/attack_typr as ty
+import lib/attack_type as ty
 
 choices = [1, 2, 3]
 Threads = []
