@@ -3,7 +3,7 @@ import threading as th
 import time
 import sys
 import os
-import test_lib as ty
+import lib/test_lib as ty
 
 choices = [1, 2, 3]
 Threads = []
