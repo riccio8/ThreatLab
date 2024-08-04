@@ -8,7 +8,7 @@ import lib/attack_type as ty
 choices = [1, 2, 3]
 Threads = []
 
-# Definizione delle funzioni all'esterno delle condizioni
+
 def udp_flooding(i):
     print("first choice")
 
@@ -77,7 +77,7 @@ try:
                 Threads.append(t)
                 t.start()
 
-    # Aspetta che tutti i thread completino l'esecuzione
+    
     for t in Threads:
         t.join()
 
