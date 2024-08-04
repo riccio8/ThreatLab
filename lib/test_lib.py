@@ -2,17 +2,17 @@ import requests as res
 import time
 
 class VolumeBasedAttack:
-    def udp_flooding(vector, bye):
+    def udp_flooding(vector, bye, port):
         print(f"UDP flooding attack on {vector} with {len(bye)} bytes")
 
-    def icmp(vector, bye):
+    def icmp(vector, bye, port):
         print(f"ICMP attack on {vector} with {len(bye)} bytes")
 
 class ProtocolAttack:
-    def syn_flood(vector, bye):
+    def syn_flood(vector, bye, port):
         print(f"SYN flood attack on {vector} with {len(bye)} bytes")
 
-    def pof(vector, bye):
+    def pof(vector, bye, port):
         print(f"POF attack on {vector} with {len(bye)} bytes")
 
 class ApplicationLayerAttack:
