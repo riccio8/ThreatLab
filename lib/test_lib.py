@@ -19,7 +19,8 @@ class VolumeBasedAttack:
             s.close() 
 
     @staticmethod
-    def icmp(vector: list, bye: int):
+    def icmp(vector: list, bye: bytes):
+        bye = int(bye)
         if platform.system() == 'Linux':
             wifi = input("In Linux, you can also use wifi in ping mode, do you want to? (y/n) \n")
             if wifi.lower() == 'y':
