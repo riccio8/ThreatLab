@@ -5,7 +5,7 @@ import sys
 import os
 from scapy.all import IP, TCP, send, RandShort
 import random
-import test_lib as ty
+import dos_lib as ty
 import platform
 import ping3
 from scapy.all import *
