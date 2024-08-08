@@ -5,7 +5,7 @@ import sys
 import os
 from scapy.all import IP, TCP, send, RandShort
 import random
-import dos_lib as ty
+import test_lib as ty
 import platform
 import ping3
 from scapy.all import *
@@ -43,7 +43,7 @@ try:
 
     elif attack_type == choices[1]:
         protocolAttack = ty.ProtocolAttack
-        subtype1 = int(input("Syn_flood(1) or pof(2)\n"))
+        subtype1 = int(input(" pof(2)\n"))
         if subtype1 == 1:
             print("Now u have 10 second for end the attack... \n")
             time.sleep(10)
