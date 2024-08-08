@@ -190,4 +190,4 @@ class ApplicationLayerAttack:
 
     @staticmethod
     def get(vector: list, bye: bytes):
-        print(f"GET attack on {vector} with {len(bye)} bytes")
+        pass
