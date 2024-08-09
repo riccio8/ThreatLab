@@ -151,6 +151,7 @@ class ProtocolAttack:
                 except ValueError as e:
                     print(f"Invalid port: {e}")
                     return
+                
             else:
                 ssport = RandShort()
             
@@ -182,3 +183,7 @@ class ApplicationLayerAttack:
     @staticmethod
     def get(vector: list, bye: bytes):
         print(f"GET attack on {vector} with {len(bye)} bytes")
+@function
+def get (vector: list, bye: bytes):
+        print(f"GET attack on {vector} with {len(bye)} bytes") ; 
+    
