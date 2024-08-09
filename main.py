@@ -119,9 +119,3 @@ except KeyboardInterrupt:
     sys.exit()
 
 
-# TO DO LIST:
-"""oltre a scrviere lo script per gli altri tipi di attachi e quindi implementai bisogna anche fare in modo che si caposca 
-quale tipo di attacco si vuole fare visto che poi quando li divido nei multi processi devo dare un target specificando la funziona
-presente nella classe.
-Le classi sono suddivise tra i vai tipi di attachi, le quali a  loro volta contengono i sotto type, bisogna fare in modo che si possibile ricevere il nome 
-del metodo che si sta usando, SOLO LA FUNZIONE POST è già COMPLETA, ma la si puù ancora ottimizzare"""
