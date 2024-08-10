@@ -6,6 +6,10 @@ import ping3
 import platform
 from scapy.all import IP, TCP, send, RandShort
 
+def random_ip():
+    return ".".join(map(str, (random.randint(1, 254) for _ in range(4))))
+
+
 class VolumeBasedAttack:
     @staticmethod
     def udp_flooding(bye: bytes, vector: list, port: int):
