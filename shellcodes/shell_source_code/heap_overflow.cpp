@@ -1,9 +1,4 @@
-void function(){
-  int* p = (int*)malloc(sizeof(int) * 1000);
-  // free(p)
-}
-
-int main(){
-  function();
+int main() {
+  double* ptr = new double(64 *100000000000);
   return 0;
 }
