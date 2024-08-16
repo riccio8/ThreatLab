@@ -2,10 +2,6 @@
 
 using namespace std;
 
-#include "MemVuln.hpp"
-
-using namespace std;
-
 
 MemType::MemType(long n, const char* b) {
     this->number = n;
