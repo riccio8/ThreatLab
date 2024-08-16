@@ -2,6 +2,10 @@
 
 using namespace std;
 
+#include "MemVuln.hpp"
+
+using namespace std;
+
 
 MemType::MemType(long n, const char* b) {
     this->number = n;
@@ -16,19 +20,18 @@ MemType::~MemType() {
 
 
 void MemType::MemLeak() {
-    char buffer[2];
+    char buffer[20];
     strcpy(buffer, "TooLargeForBuffer");
     cout << "Buffer contains: " << buffer << endl;
 }
 
 
 void MemType::heapLeak() {
-    long* num1 = new long(1000000000000);
-    long num2 = (*num1) * 10000;
+    long long* num1 = new long long(1000000000000LL); 
+    long long num2 = (*num1) * 10000;
     cout << "Result of heap operation: " << num2 << endl;
-    delete num1; // Ricordati di liberare la memoria
+    delete num1; 
 }
-
 
 void VulnerableVoid::stack_overflow(const char* input) {
     char buffer[8];  
@@ -36,7 +39,6 @@ void VulnerableVoid::stack_overflow(const char* input) {
     strcpy(buffer, input);  
     cout << "Data in the buffer: " << buffer << endl;
 }
-
 
 void VulnerableVoid::heap_overflow(const char* big) {
     cout << "Simulating heap overflow..." << endl;
@@ -47,19 +49,4 @@ void VulnerableVoid::heap_overflow(const char* big) {
     cout << "Buffer1: " << buffer1 << endl;
     cout << "Buffer2: " << buffer2 << endl;
 
-    delete[] buffer1; // Liberare la memoria
-    delete[] buffer2; // Liberare la memoria
-}
-
-int main() {
-    VulnerableVoid vul;
-    MemType mem(1000, "Hello");
-
-    vul.stack_overflow("ThisIsAVeryLongStringThatWillOverflowTheBufferInStackOverflowMethod");
-    vul.heap_overflow("ThisIsALongStringThatWillCauseHeapOverflow");
-
-    mem.MemLeak();
-    mem.heapLeak();
-
-    return 0;
 }
