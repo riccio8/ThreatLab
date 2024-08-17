@@ -87,4 +87,6 @@ try:
 
 except KeyboardInterrupt:
     os.system("cls")
+    print("[x] exiting")
+    time.sleep(1)
     sys.exit()
