@@ -19,6 +19,9 @@ try:
     bye = input("number of bytes: \n" ).encode() #packet size
     port = input("chose an internet port (or ports) for the attack: (not all types of attack need net port, if your type attack doesn't just press enter)\n").split(" ")#network port(s)
  #  bytes = bytes(bye)
+
+    time.sleep(2)
+    print("[x]syn flood attack needs root privilage")
     
     if attack_type == choices[0]:
         volumeBaseAttack = ty.VolumeBasedAttack
