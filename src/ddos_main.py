@@ -5,11 +5,15 @@ import sys
 import os
 from scapy.all import IP, TCP, send, RandShort
 import random
-import lib/dos_lib as ty
 import platform
 import ping3
 from scapy.all import *
 
+if platform.system == 'Windows':
+    import lib\dos_lib as ty
+else:
+    import lib/dos_lib as ty
+    
 choices = [1, 2, 3]
 Threads = []
 
