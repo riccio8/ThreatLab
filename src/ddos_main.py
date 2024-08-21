@@ -8,11 +8,14 @@ import random
 import platform
 import ping3
 from scapy.all import *
+import importlib.util
 
-if platform.system == 'Windows':
-    import lib\dos_lib as ty
-else:
-    import lib/dos_lib as ty
+lib_path = os.path.join(os.path.dirname(__file__), 'lib', 'dos_lib.py')
+
+spec = importlib.util.spec_from_file_location("ty", lib_path)
+ty = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(ty)
+
     
 choices = [1, 2, 3]
 Threads = []
