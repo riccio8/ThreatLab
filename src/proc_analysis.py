@@ -3,16 +3,28 @@ import platform
 import pefile as pe
 import peutils as pes
 import time
+import psutil
+import argparse
 
-if platform.system == 'Linux':
+
+parser = argparse.ArgumentParser(description='Process analysis tool.')
+parser.add_argument('--logfile', help='Save output to a log file. Usage: python proc_analysis.py --logfile=log.txt', default=None)
+args = parser.parse_args()
+
+
+def log(message):
+    print(message)
+    if args.logfile:
+        with open(args.logfile, 'a') as logfile:
+            logfile.write(message + '\n')
+
+if platform.system() == 'Linux':
     os.system("pip3 install psutil")
-    import psutil
 else: 
-  os.system("pip install psutil")
-  import psutil
+    os.system("pip install psutil")
 
 
-proc_name = input("[X]name of the process...: \n")
+proc_name = input("[X] Name of the process...: \n")
 
 
 def get_process_path(pid):
@@ -20,72 +32,86 @@ def get_process_path(pid):
         process = psutil.Process(pid)
         return process.exe()  
     except psutil.NoSuchProcess:
-        return f"[ERROR]Process with PID {pid} not found."
+        return f"[ERROR] Process with PID {pid} not found."
     except psutil.AccessDenied:
-        return "[ERROR]AccessDenied to the proces."
+        return "[ERROR] AccessDenied to the process."
     except Exception as e:
         return str(e)
 
-def analysis():  
-    for processes in psutil.process_iter():
-        if processes.name() == proc_name:
-            print("[INFO]: ", processes, "with pid: \n", processes.pid)
-            process_pid = processes.pid
-            kill = input("[*] Do u want to kill the process? (Y/N): \n")
-            if kill.lower() == "Y":
-                os.system("taskkill /in" + str(processes.pid))
-            else:
-                print("[X] Analysis of", proc_name, ".")
-                print("[X] Analysis could take some time, please wait...")
-                time.sleep(2)
-                print("[X] Analysis in progress...")
-
-                path1 = get_process_path(process_pid)
-
-                path = pe.PE(path, True)
-                sospicious = pes.is_suspicious(path)
-                if sospicious == True:
-                    print("[INFO] ",proc_name, "is sospicious...")
-                    print("[INFO] It could be that: import tables are in unusual locations \n", "or section names are unrecognized \n", " or there is a presence of long ASCII strings....")
+def main():  
+    try: 
+        for processes in psutil.process_iter():
+            if processes.name() == proc_name:
+                log(f"[INFO]: {processes} with pid: {processes.pid}")
+                process_pid = processes.pid
+                kill = input("[*] Do you want to kill the process? (Y/N): \n")
+                if kill.lower() == "y":
+                    os.system("taskkill /pid " + str(processes.pid))
                 else:
-                    print("[INFO] File is not sospicious...\n")
-                    continue
-                time.sleep(3)
-                print("[X] Analyzing signature... \n")
-                time.sleep(1)
-                valid = pes.is_valid(path)
-                if valid != True:
-                    print("[INFO] File's signature is not valid...\n")
-                else:
-                    print("[INFO] File's signature is valid...\n")
+                    log(f"[X] Analysis of {proc_name}.")
+                    log("[X] Analysis could take some time, please wait...")
+                    time.sleep(2)
+                    log("[X] Analysis in progress...")
 
-                print("[X] Analyzing sections...\n")
-                
-                for section in path.sections:
-                    print("[INFO] File's section: \n")
+                    path1 = get_process_path(process_pid)
+
+                    path = pe.PE(path1, True)
+                    suspicious = pes.is_suspicious(path)
+                    if suspicious:
+                        log(f"[INFO] {proc_name} is suspicious...")
+                        log("[INFO] It could be that: import tables are in unusual locations, or section names are unrecognized, or there is a presence of long ASCII strings....")
+                    else:
+                        log("[INFO] File is not suspicious...\n")
+                        continue
+                    
+                    time.sleep(3)
+                    log("[X] Analyzing signature... \n")
                     time.sleep(1)
-                    print (section.Name, hex(section.VirtualAddress), hex(section.Misc_VirtualSize), section.SizeOfRawData "\n")
+                    valid = pes.is_valid(path)
+                    if not valid:
+                        log("[INFO] File's signature is not valid...\n")
+                    else:
+                        log("[INFO] File's signature is valid...\n")
 
-                print("[INFO] Analysis of the libraries... \n")
-                time.sleep(1)
+                    log("[X] Analyzing sections...\n")
+                    
+                    for section in path.sections:
+                        time.sleep(1)
+                        log(f"[INFO] Section: {section.Name}, Virtual Address: {hex(section.VirtualAddress)}, Virtual Size: {hex(section.Misc_VirtualSize)}, Size of Raw Data: {section.SizeOfRawData}")
 
-                path.parse_data_directories()
-                for entry in path.DIRECTORY_ENTRY_IMPORT:
-                    print("[INFO] LIbraries loaded... \n")
-                    print (entry.dll, "\n")
-                    for imp in entry.imports:
-                        print ('\t', hex(imp.address), imp.name)
+                    log("[INFO] Analysis of the libraries... \n")
+                    time.sleep(1)
 
-                print("[X] Analyzing the file format... \n")
+                    path.parse_data_directories()
+                    for entry in path.DIRECTORY_ENTRY_IMPORT:
+                        log(f"[INFO] Libraries loaded: {entry.dll}")
+                        for imp in entry.imports:
+                            log(f"\t {hex(imp.address)} {imp.name}")
 
-                time.sleep(2)    
+                    log("[X] Analyzing the file format... \n")
 
-                strip =  pes.is_probably_packed(path)
-                if strip == True:   
-                    print("[INFO] File is probably packed or contains compressed data... \n")
-                else:
-                    print("[INFO] File isn't compressed or packed... \n")
+                    time.sleep(2)    
 
+                    strip = pes.is_probably_packed(path)
+                    if strip:   
+                        log("[INFO] File is probably packed or contains compressed data... \n")
+                    else:
+                        log("[INFO] File isn't compressed or packed... \n")
+
+                    log("[X] Saving the PE dump file... \n")
+
+                    with open(proc_name + "_dump.txt", 'w') as dump:
+                        dump.write(path.dump_info())
+                        dump.close()
+
+    except Exception as e:
+        log("[ERROR] " + str(e))
     else: 
-        print("[ERROR]No processes found...")
+        log("[ERROR] No processes found...")
         exit()
+
+if __name__ == "__main__":
+    main()
+
+def net_analysis():
+    pass 
