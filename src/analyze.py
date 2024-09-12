@@ -19,9 +19,9 @@ def get_process_path(pid):
         process = psutil.Process(pid)
         return process.exe()  
     except psutil.NoSuchProcess:
-        return f"Process with PID {pid} not found."
+        return f"[ERROR]Process with PID {pid} not found."
     except psutil.AccessDenied:
-        return "AccessDenied to the proces."
+        return "[ERROR]AccessDenied to the proces."
     except Exception as e:
         return str(e)
 
@@ -31,7 +31,7 @@ for processes in psutil.process_iter():
         print("[INFO]: ", processes, "with pid: \n", processes.pid)
         process_pid = processes.pid
         kill = input("[*] Do u want to kill the process? (Y/N): \n")
-        if kill == lower("Y")
+        if kill.lower() == "Y":
             end_process = os.system("taskkill /in" + str(processes.pid))
         else:
             print("[X] Analysis of", proc_name, ".")
@@ -42,5 +42,5 @@ for processes in psutil.process_iter():
             pes.peutils.is_suspicious(path)
             
 else: 
-    print("[x]No processes found...")
-
+    print("[ERROR]No processes found...")
+    break
