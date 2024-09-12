@@ -1,7 +1,6 @@
 # These are some tolls which allow you to perform some type of attacks
 
-for the moment just clone the repo, install g++ complier, golang compliler and python interpreter and run install the req:
-``` pip install -r requirements.txt```
+for the moment just clone the repo, install g++ complier, golang compliler and python interpreter and run install the req: ``` pip install -r requirements.txt```
 
 
 ## External links:
