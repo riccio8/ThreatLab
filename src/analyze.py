@@ -14,4 +14,4 @@ for processes in psutil.process_iter():
     if processes.name() == proc_name:
         print(processes, "with pid: \n", processes.pid)
         process_pid = processes.pid
-        
+        end_process = os.system("taskkill /in" + str(processes.pid))
