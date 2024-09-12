@@ -38,9 +38,32 @@ for processes in psutil.process_iter():
             print("[X] Analysis could take some time, please wait...")
             time.sleep(2)
             print("[X] Analysis in progress...")
-            path = get_process_path(process_pid)
-            pes.peutils.is_suspicious(path)
+
+            path1 = get_process_path(process_pid)
+
+            path = pe.PE(path, True)
+            sospicious = pes.is_suspicious(path)
+            if sospicious == True:
+                print("[INFO] ",proc_name, "is sospicious...")
+                print("[INFO] It could be that: import tables are in unusual locations \n", "or section names are unrecognized \n", " or there is a presence of long ASCII strings....")
+            else:
+                print("[INFO] File is not sospicious...\n")
+                continue
+            time.sleep(3)
+            print("[X] Analyzing signature... \n")
+            time.sleep(1)
+            valid = pes.is_valid(path)
+            if valid != True:
+                print("[INFO] File's signature is not valid...\n")
+            else:
+                print("[INFO] File's signature is valid...\n")
+
+            print("[INFO] Analyzing sections...\n")
             
+            for section in path.sections:
+                print (section.Name, hex(section.VirtualAddress), hex(section.Misc_VirtualSize), section.SizeOfRawData )
+
 else: 
+
     print("[ERROR]No processes found...")
-    break
+    exit()
