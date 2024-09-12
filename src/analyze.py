@@ -12,4 +12,6 @@ proc_name = input("type the name of the process u want to analyze, like notepad.
 
 for processes in psutil.process_iter():
     if processes.name() == proc_name:
-        print(process)
+        print(processes, "with pid: \n", processes.pid)
+        process_pid = processes.pid
+        
