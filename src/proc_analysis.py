@@ -2,6 +2,7 @@ import os
 import platform
 import pefile as pe
 import peutils as pes
+import time
 
 if platform.system == 'Linux':
     os.system("pip3 install psutil")
@@ -32,7 +33,7 @@ def analysis():
             process_pid = processes.pid
             kill = input("[*] Do u want to kill the process? (Y/N): \n")
             if kill.lower() == "Y":
-                end_process = os.system("taskkill /in" + str(processes.pid))
+                os.system("taskkill /in" + str(processes.pid))
             else:
                 print("[X] Analysis of", proc_name, ".")
                 print("[X] Analysis could take some time, please wait...")
@@ -58,12 +59,32 @@ def analysis():
                 else:
                     print("[INFO] File's signature is valid...\n")
 
-                print("[INFO] Analyzing sections...\n")
+                print("[X] Analyzing sections...\n")
                 
                 for section in path.sections:
                     print("[INFO] File's section: \n")
                     time.sleep(1)
-                    print (section.Name, hex(section.VirtualAddress), hex(section.Misc_VirtualSize), section.SizeOfRawData )
+                    print (section.Name, hex(section.VirtualAddress), hex(section.Misc_VirtualSize), section.SizeOfRawData "\n")
+
+                print("[INFO] Analysis of the libraries... \n")
+                time.sleep(1)
+
+                path.parse_data_directories()
+                for entry in path.DIRECTORY_ENTRY_IMPORT:
+                    print("[INFO] LIbraries loaded... \n")
+                    print (entry.dll, "\n")
+                    for imp in entry.imports:
+                        print ('\t', hex(imp.address), imp.name)
+
+                print("[X] Analyzing the file format... \n")
+
+                time.sleep(2)    
+
+                strip =  pes.is_probably_packed(path)
+                if strip == True:   
+                    print("[INFO] File is probably packed or contains compressed data... \n")
+                else:
+                    print("[INFO] File isn't compressed or packed... \n")
 
     else: 
         print("[ERROR]No processes found...")
