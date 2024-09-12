@@ -3,6 +3,7 @@ import platform
 import pefile as pe
 import peutils as pes
 import time
+from scapy.all import sniff
 import psutil
 import argparse
 
@@ -10,16 +11,32 @@ parser = argparse.ArgumentParser(description='Process analysis tool.')
 parser.add_argument('--logfile', help='Optional. Save output to a log file. Usage: python proc_analysis.py --logfile=log.txt', default=None)
 args = parser.parse_args()
 
-def log(message):
-    print(message)
-    if args.logfile:
-        with open(args.logfile, 'a') as logfile:
-            logfile.write(message + '\n')
 
 if platform.system() == 'Linux':
     os.system("clear")
 else:
     os.system("cls")
+
+
+def log(message):
+    print(message)
+    try:
+        if args.logfile:
+            with open(args.logfile, 'a') as logfile:
+                logfile.write(message + '\n')
+    except Exception as e:
+        print("[ERROR]Error occurred: \n", e)
+
+
+def insecure_net():
+    for conn in psutil.net_connections(kind='inet'):
+        if conn.laddr.port == 21 or conn.laddr.port == 23 or conn.laddr.port == 24:
+            print(f"[INFO]Process {conn.pid} is using an insecure port: {conn.laddr.port}")
+        elif conn.laddr.port == 80:
+            print(f"[INFO]Process {conn.pid} is using HTTP on port 80")
+
+
+
 
 proc_name = input("[X] Name of the process...: \n")
 
@@ -45,11 +62,22 @@ def main():
                 kill = input("[*] Do you want to kill the process? (Y/N): \n")
                 if kill.lower() == "y":
                     os.system("taskkill /pid " + str(processes.pid))
+                    if platform.system() == 'Linux':
+                        os.system("clear")
+                    else:
+                        os.system("cls")
+                    os.abort()
+
                 else:
+                    if platform.system() == 'Linux':
+                        os.system("clear")
+                    else:
+                        os.system("cls")
                     log(f"[X] Analysis of {proc_name}.")
                     log("[X] Analysis could take some time, please wait...")
                     time.sleep(2)
                     log("[X] Analysis in progress...")
+                    log(f"[INFO]General infos: {psutil.cpu_times()} \n")
 
                     path1 = get_process_path(process_pid)
 
@@ -66,7 +94,7 @@ def main():
                         log("[X] Analyzing signature... \n")
                         time.sleep(1)
                         valid = pes.is_valid(path)
-                        if not valid:
+                        if valid != True:
                             log("[INFO] File's signature is not valid...\n")
                         else:
                             log("[INFO] File's signature is valid...\n")
@@ -95,6 +123,9 @@ def main():
                             log("[INFO] File is probably packed or contains compressed data... \n")
                         else:
                             log("[INFO] File isn't compressed or packed... \n")
+                        
+                        insecure_net()
+                        time.sleep(1)
 
                         log("[X] Saving the PE dump file... \n")
 
@@ -112,5 +143,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-def net_analysis():
-    pass
+
+
