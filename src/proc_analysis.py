@@ -61,7 +61,6 @@ def main():
                             log("[INFO] It could be that: import tables are in unusual locations, or section names are unrecognized, or there is a presence of long ASCII strings....")
                         else:
                             log("[INFO] File is not suspicious...\n")
-                            continue
 
                         time.sleep(3)
                         log("[X] Analyzing signature... \n")
