@@ -132,6 +132,7 @@ def main():
                         with open(proc_name + "_dump.txt", 'w') as dump:
                             dump.write(path.dump_info())
                             dump.close()
+                        os.abort()
                     except Exception as e:
                         log("[ERROR] " + str(e))
 
