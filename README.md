@@ -35,3 +35,7 @@ This repository contains tools and libraries written in Assembly, Go (Golang), C
 ⚠️ **Disclaimer**: The tools and code provided in this repository are intended for educational and defensive security purposes **ONLY**. I do **NOT** take responsibility for how these tools are used. Use these resources ethically and legally.
 
 ---
+
+```text
+the assembly one is needs some improvements... ;)
+```
