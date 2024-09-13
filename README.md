@@ -1,4 +1,3 @@
-Sure! Here’s the updated README with simpler formatting:
 
 ---
 
