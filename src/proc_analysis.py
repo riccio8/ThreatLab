@@ -34,6 +34,10 @@ def insecure_net():
             print(f"[INFO]Process {conn.pid} is using an insecure port: {conn.laddr.port}")
         elif conn.laddr.port == 80:
             print(f"[INFO]Process {conn.pid} is using HTTP on port 80")
+    
+    # log("[X]Analyzing http connection... \n")
+    # time.sleep(1)
+    # log(f"[INFO]Connection: \t {psutil.net_connections(kind='all')}")
 
 
 
@@ -52,6 +56,7 @@ def get_process_path(pid):
         return str(e)
 
 def main():  
+    log(f"[WANRING] Current user: {psutil.users()} \n")
     found_process = False
     try: 
         for processes in psutil.process_iter():
@@ -79,6 +84,8 @@ def main():
                     log("[X] Analysis in progress...")
                     log(f"[INFO]General infos: {psutil.cpu_times()} \n")
 
+                    time.sleep(1)
+                    log("-----------------------------------------------------------------------------------------------------------------------------------------------")
                     path1 = get_process_path(process_pid)
 
                     try:
@@ -90,20 +97,30 @@ def main():
                         else:
                             log("[INFO] File is not suspicious...\n")
 
-                        time.sleep(3)
+
+                        time.sleep(2)
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
+
+                        time.sleep(1)
                         log("[X] Analyzing signature... \n")
                         time.sleep(1)
                         valid = pes.is_valid(path)
-                        if valid != True:
+                        if valid == True:
                             log("[INFO] File's signature is not valid...\n")
                         else:
                             log("[INFO] File's signature is valid...\n")
+
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
 
                         log("[X] Analyzing sections...\n")
 
                         for section in path.sections:
                             time.sleep(1)
                             log(f"[INFO] Section: {section.Name}, Virtual Address: {hex(section.VirtualAddress)}, Virtual Size: {hex(section.Misc_VirtualSize)}, Size of Raw Data: {section.SizeOfRawData}")
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
 
                         log("[INFO] Analysis of the libraries... \n")
                         time.sleep(1)
@@ -113,6 +130,8 @@ def main():
                             log(f"[INFO] Libraries loaded: {entry.dll}")
                             for imp in entry.imports:
                                 log(f"\t {hex(imp.address)} {imp.name}")
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
 
                         log("[X] Analyzing the file format... \n")
 
@@ -124,15 +143,51 @@ def main():
                         else:
                             log("[INFO] File isn't compressed or packed... \n")
                         
+                        log("----------------------------------------------------------------------------------------------------------------------------------------------- ")
+                        
                         insecure_net()
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
+
+                        pobj = psutil.Process(process_pid)
+                        conn_list = pobj.net_connections(kind='all')
+
+                        if conn_list != None:
+                                for conn in conn_list:
+                                    log(f"[INFO] Connections:\t{conn} \n")
+                        else:
+                            log("[INFO] No Connections for this process...\n")
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
+
                         time.sleep(1)
+
+                        log("[X] Analyzing thread...\n")
+
+                        time.sleep(1)
+
+                        log(f"[INFO] Thread analysis: \t {pobj.threads()}...\n")
+
+                        log("-----------------------------------------------------------------------------------------------------------------------------------------------")
 
                         log("[X] Saving the PE dump file... \n")
 
                         with open(proc_name + "_dump.txt", 'w') as dump:
                             dump.write(path.dump_info())
                             dump.close()
-                        os.abort()
+                        
+                        test = input("[TEST] Do u want more info? \n")
+                        if test.lower() == "y":
+                            psutil.test()
+
+                            winservice = list(psutil.win_service_iter()) 
+                            for service in winservice:
+                                log(f"[INFO] Win service running: {service} \n")
+                            os.abort()
+
+                        else:
+                            os.abort()
+
                     except Exception as e:
                         log("[ERROR] " + str(e))
 
@@ -143,6 +198,3 @@ def main():
    
 if __name__ == "__main__":
     main()
-
-
-
