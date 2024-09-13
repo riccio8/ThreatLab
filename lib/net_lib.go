@@ -11,7 +11,7 @@ type ScanResult struct{
 	State string
 }
 
-
+fmt.Println("[INFO]Library in progress...")
 func scanPort(protocol, hostname string, port int) ScanResult{
 	result = ScanResult{Port: port}
 	address := hostname + ":" + strconv.Itoa(port)
