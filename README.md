@@ -13,8 +13,11 @@ This repository contains tools and libraries written in Assembly, Go (Golang), C
 - **Memory Analysis**: Utilities for inspecting memory regions, heap, and stack allocations.
 - **Vulnerability Detection**: Tools to identify potential vulnerabilities, such as:
   - Unencrypted HTTP traffic
+  - Compressed data (potential malware)
   - Memory leaks
   - Unauthorized memory access
+    and so on
+    
 - **DOS Tools**: Utilities for interacting with system internals at the DOS level.
 - **Cross-Platform Support**:
   - **Windows**: Most of the tools are designed to work on Windows systems.
