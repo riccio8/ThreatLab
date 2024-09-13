@@ -10,6 +10,8 @@ import ping3
 from scapy.all import *
 import importlib.util
 
+print("[WARNING] Some tool require root privilage... \n")
+
 lib_path = os.path.join(os.path.dirname(__file__), 'lib', 'dos_lib.py')
 
 spec = importlib.util.spec_from_file_location("ty", lib_path)
