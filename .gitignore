@@ -107,7 +107,7 @@ venv.bak/
 # Binaries for programs and plugins
 *.exe
 *.exe~
-*.dll
+# *.dll
 *.so
 *.dylib
 
