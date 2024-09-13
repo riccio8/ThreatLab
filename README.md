@@ -1,29 +1,35 @@
+Sure! Here’s the updated README with simpler formatting:
+
+---
+
 # Process & Memory Analysis Toolkit
-  ## Description
 
-    ### This repository contains tools and libraries written in Assembly, Go (Golang), C++, and Python designed for process and memory analysis, vulnerability detection, and defense against various types of exploits. The project includes DLL files, DOS utilities, and other low-level tools for analyzing system internals, processes, and memory states.
-# Features
+## Description
 
-    Process Monitoring: Tools for monitoring active processes and analyzing their behavior.
-    Memory Analysis: Utilities for inspecting memory regions, heap, and stack allocations.
-    Vulnerability Detection: Scripts and tools to identify potential vulnerabilities in running processes or memory states, such as:
-        Unencrypted HTTP traffic
-        Memory leaks
-        Unauthorized memory access
-    DOS Tools: Utilities for DOS-level interaction with system internals.
-    Cross-Platform Support: The tools are designed for use on Windows systems, with some tools supporting Linux as well.
+This repository contains tools and libraries written in Assembly, Go (Golang), C++, and Python designed for process and memory analysis, vulnerability detection, and defense against various types of exploits. The project includes DLL files, DOS utilities, and other low-level tools for analyzing system internals, processes, and memory states.
 
-# Languages & Tools Used
+## Features
 
-    Assembly: Low-level memory manipulation and process interaction tools.
-    Golang: High-performance utilities for real-time process and network analysis.
-    C++: Libraries for detailed system-level interaction and vulnerability detection.
-    Python: High-level scripting tools for integrating analysis and detection capabilities with other components.
+- **Process Monitoring**: Tools for monitoring active processes and analyzing their behavior.
+- **Memory Analysis**: Utilities for inspecting memory regions, heap, and stack allocations.
+- **Vulnerability Detection**: Tools to identify potential vulnerabilities, such as:
+  - Unencrypted HTTP traffic
+  - Memory leaks
+  - Unauthorized memory access
+- **DOS Tools**: Utilities for interacting with system internals at the DOS level.
+- **Cross-Platform Support**:
+  - **Windows**: Most of the tools are designed to work on Windows systems.
+  - **Linux**: Some tools are specifically designed for Linux environments.
 
-# Disclaimer
+## Languages & Tools Used
 
-⚠️ Disclaimer: The tools and code provided in this repository are intended for educational and defensive security purposes ONLY. I do NOT take any responsibility for how these tools are used. Use these resources ethically and legally.
+- **Assembly**: Low-level memory manipulation and process interaction.
+- **Golang**: High-performance utilities for process and network analysis.
+- **C++**: System-level libraries for detailed interaction and vulnerability detection.
+- **Python**: Scripting tools to integrate analysis and detection capabilities.
 
-## External links:
-https://j00ru.vexillium.org/syscalls/win32k/64/ for windows x64 (https://github.com/j00ru/windows-syscalls)
-https://x64.syscall.sh/  for linux x64 
+## Disclaimer
+
+⚠️ **Disclaimer**: The tools and code provided in this repository are intended for educational and defensive security purposes **ONLY**. I do **NOT** take responsibility for how these tools are used. Use these resources ethically and legally.
+
+---
