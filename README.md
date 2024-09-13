@@ -16,7 +16,7 @@ This repository contains tools and libraries written in Assembly, Go (Golang), C
   - Compressed data (potential malware)
   - Memory leaks
   - Unauthorized memory access
-    and so on
+    and so on...
     
 - **DOS Tools**: Utilities for interacting with system internals at the DOS level.
 - **Cross-Platform Support**:
