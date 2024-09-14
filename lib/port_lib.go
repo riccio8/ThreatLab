@@ -1,10 +1,11 @@
-package port
+package port_lib
 
 import (
 	"log"
 	"net"
 	"strconv"
 	"time"
+
 )
 
 func ScanPort(protocol, hostname string, port int) bool {
