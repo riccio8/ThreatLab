@@ -37,5 +37,5 @@ This repository contains tools and libraries written in Assembly, Go (Golang), C
 ---
 
 ```text
-the assembly one is needs some improvements... ;)
+the assembly one needs some improvements... ;)
 ```
