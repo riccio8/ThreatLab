@@ -8,11 +8,11 @@ import (
 )
 
 // Function to list all running processes
-func ListProcesses() {
-	fmt.Println("\033[32mListing all processes...\033[0m")
+func ListInfoProcesses() {
+	fmt.Println("\033[36mListing all processes...\033[0m") // Cyan for listing processes
 	snapshot, err := syscall.CreateToolhelp32Snapshot(syscall.TH32CS_SNAPALL, 0)
 	if err != nil {
-		fmt.Println("\033[31mError creating process snapshot:\033[0m", err)
+		fmt.Println("\033[31mError creating process snapshot:\033[0m", err) // Red for error messages
 		return
 	}
 	defer syscall.CloseHandle(snapshot)
@@ -22,17 +22,21 @@ func ListProcesses() {
 
 	err = syscall.Process32First(snapshot, &entry)
 	if err != nil {
-		fmt.Println("\033[31mError retrieving first process:\033[0m", err)
+		fmt.Println("\033[31mError retrieving first process:\033[0m", err) // Red for error messages
 		return
 	}
 
-	fmt.Println("\033[32mProcesses:\033[0m")
+	fmt.Println("\033[32mProcesses:\033[0m") // Green for the header
 	for {
-		processName := syscall.UTF16ToString(entry.SzExeFile[:])
-		fmt.Printf("PID: %d, Name: %s\n", entry.ProcessID, processName)
+		processName := syscall.UTF16ToString(entry.ExeFile[:])
+		// Highlighting process information in green
+		fmt.Printf("\033[32mPid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d\033[0m\n",
+			entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
 
-		if err = syscall.Process32Next(snapshot, &entry); err != nil {
-			break // No more processes to enumerate
+		err = syscall.Process32Next(snapshot, &entry)
+		if err != nil {
+			fmt.Println("\033[33mNo more processes...\033[0m") // Yellow for end message
+			break                                              // No more processes to enumerate
 		}
 	}
 }
@@ -89,7 +93,7 @@ func main() {
 
 	switch command {
 	case "list":
-		ListProcesses()
+		ListInfoProcesses()
 	case "info":
 		if len(os.Args) < 3 {
 			fmt.Println("\033[31mError: PID required for info command.\033[0m")
