@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -45,10 +47,11 @@ func ListInfoProcesses() {
 }
 
 // Function to get detailed information about a specific process
+
 func GetProcessInfo(pid int) {
 	fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pid) // Cyan for info retrieval
 
-	// Ottenere il processo
+	// Open the process with the necessary permissions
 	hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, uint32(pid))
 	if err != nil {
 		fmt.Println("\033[31mError opening process:\033[0m", err) // Red for error messages
@@ -56,29 +59,35 @@ func GetProcessInfo(pid int) {
 	}
 	defer windows.CloseHandle(hProcess)
 
-	var pe windows.ProcessBasicInformation
-	// Ottieni informazioni di base sul processo
-	_, err = windows.NtQueryInformationProcess(hProcess, windows.ProcessBasicInformation, uintptr(unsafe.Pointer(&pe)), unsafe.Sizeof(pe), nil)
-	if err != nil {
-		fmt.Println("\033[31mError querying process information:\033[0m", err) // Red for error messages
-		return
-	}
-
-	// Ottenere il nome del processo
+	// Get the full name of the process
 	var processName [windows.MAX_PATH]uint16
-	processPathLength := uint32(len(processName) * 2)
-	_, err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
+	processPathLength := uint32(len(processName))
+	err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
 	if err != nil {
 		fmt.Println("\033[31mError retrieving process name:\033[0m", err) // Red for error messages
 		return
 	}
 
-	// Convertire il nome del processo in stringa
+	// Convert the process name to a string
 	name := windows.UTF16ToString(processName[:])
 
-	// Stampa delle informazioni del processo
-	fmt.Printf("\033[32mPID: %d\tNome: %s\tUtilizzo Memoria: %d\tData di Avvio: %s\tPriorità: %d\tThread: %d\033[0m\n",
-		pid, name, pe.MemoryLimits.WorkingSetSize, pe.CreateTime, pe.PriorityClass, pe.NumberOfThreads)
+	// Print the process information
+	fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pid, name) // Green for process information
+}
+
+func generic() error {
+	proc := exec.Command("ps")
+	// Utilizziamo Output() per ottenere l'output del comando
+	info, err := proc.Output()
+
+	if err != nil {
+		fmt.Println("Error while getting generic infos: ", err)
+		return err
+	}
+
+	// Stampiamo l'output del comando
+	fmt.Println(string(info))
+	return nil
 }
 
 // Function to terminate a process by its PID
@@ -118,6 +127,10 @@ func WriteMemory(pid int, address string, data string) {
 }
 
 func main() {
+	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'general' args as first one... \033[0m")
+	
+	time.Sleep(1 * time.Second) 
+	
 	if len(os.Args) < 2 {
 		fmt.Println("\033[31mError: No command provided. Please use 'list', 'info <pid>', etc.\033[0m")
 		return
@@ -169,9 +182,11 @@ func main() {
 			fmt.Println("\033[31mError: PID, address, and data required for write-memory command.\033[0m")
 			return
 		}
+
+	case "generic":
+		generic()
 		// Convert PID from string to int and call WriteMemory
 	default:
 		fmt.Println("\033[31mError: Unknown command. Please use 'list', 'info', etc.\033[0m")
 	}
 }
-s
