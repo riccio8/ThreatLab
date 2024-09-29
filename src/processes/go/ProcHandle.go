@@ -126,6 +126,28 @@ func WriteMemory(pid int, address string, data string) {
 	// Logic to write memory
 }
 
+
+func DisplayHelp() {
+	fmt.Println("Use help for display this massage...")
+	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]\033[0m")
+	fmt.Println("\033[33mCommands:\033[0m")
+	fmt.Println("\033[32m  list\033[0m                   \033[37mList all running processes on the system.\033[0m")
+	fmt.Println("\033[32m  info <pid>\033[0m             \033[37mRetrieve detailed information for a specific process by its PID.\033[0m")
+	fmt.Println("\033[32m  terminate <pid>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
+	fmt.Println("\033[32m  set-priority <pid> <priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
+	fmt.Println("\033[32m  suspend <pid>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
+	fmt.Println("\033[32m  resume <pid>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
+	fmt.Println("\033[32m  read-memory <pid> <address> <size>\033[0m \033[37mRead memory at a specific address of a given process. Address should be in hexadecimal format.\033[0m")
+	fmt.Println("\033[32m  write-memory <pid> <address> <data>\033[0m \033[37mWrite data to a specific memory address of a process. Address should be in hexadecimal format.\033[0m")
+	fmt.Println("\033[32m  generic\033[0m                \033[37mExecute a generic command to retrieve process information.\033[0m")
+	fmt.Println("\033[35mNote:\033[0m")
+	fmt.Println("\033[37m- PID is the Process ID you want to perform the operation on.\033[0m")
+	fmt.Println("\033[37m- Addresses should be provided in hexadecimal format (e.g., 0x7ffde000).\033[0m")
+	fmt.Println("\033[37m- The priority can be specified as low, normal, high, or realtime.\033[0m")
+	fmt.Println("\033[37m- Ensure you have sufficient permissions to execute commands on the processes you target.\033[0m")
+}
+
+
 func main() {
 	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'general' args as first one... \033[0m")
 	
