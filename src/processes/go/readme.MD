@@ -8,6 +8,25 @@ This tool provides a comprehensive set of commands to manage and interact with p
 
 ## Functions
 
+### 0. `help`
+
+#### Description
+Print the help message
+
+#### Usage
+```bash
+ProcHandle.exe help
+```
+
+#### Arguments
+- None
+
+#### Returns
+- A list of the args
+
+#### Exceptions
+- **None** (i hope)
+
 ### 1. `ListProcesses`
 
 #### Description
@@ -15,7 +34,7 @@ Lists all the running processes on the system.
 
 #### Usage
 ```bash
-process-tool list
+ProcHandle.exe list
 ```
 
 #### Arguments
@@ -35,7 +54,7 @@ Retrieves detailed information about a specific process by its PID.
 
 #### Usage
 ```bash
-process-tool info <pid>
+ProcHandle.exe info <pid>
 ```
 
 #### Arguments
@@ -55,7 +74,7 @@ Terminates a process given its PID.
 
 #### Usage
 ```bash
-process-tool terminate <pid>
+ProcHandle.exe terminate <pid>
 ```
 
 #### Arguments
@@ -76,7 +95,7 @@ Sets the priority class for a given process.
 
 #### Usage
 ```bash
-process-tool set-priority <pid> <priority>
+ProcHandle.exe set-priority <pid> <priority>
 ```
 
 #### Arguments
@@ -98,7 +117,7 @@ Suspends all threads of a given process.
 
 #### Usage
 ```bash
-process-tool suspend <pid>
+ProcHandle.exe suspend <pid>
 ```
 
 #### Arguments
@@ -118,7 +137,7 @@ Resumes a suspended process.
 
 #### Usage
 ```bash
-process-tool resume <pid>
+ProcHandle.exe resume <pid>
 ```
 
 #### Arguments
@@ -138,7 +157,7 @@ Reads a specific memory address of a given process.
 
 #### Usage
 ```bash
-process-tool read-memory <pid> <address> <size>
+ProcHandle.exe read-memory <pid> <address> <size>
 ```
 
 #### Arguments
@@ -161,7 +180,7 @@ Writes data to a specific memory address of a given process.
 
 #### Usage
 ```bash
-process-tool write-memory <pid> <address> <data>
+ProcHandle.exe write-memory <pid> <address> <data>
 ```
 
 #### Arguments
