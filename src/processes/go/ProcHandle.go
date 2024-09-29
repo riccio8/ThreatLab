@@ -5,46 +5,80 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
+
+var entry syscall.ProcessEntry32
 
 // Function to list all running processes
 func ListInfoProcesses() {
-	fmt.Println("\033[36mListing all processes...\033[0m") 
+	fmt.Println("\033[36mListing all processes...\033[0m")
 	snapshot, err := syscall.CreateToolhelp32Snapshot(syscall.TH32CS_SNAPALL, 0)
 	if err != nil {
-		fmt.Println("\033[31mError creating process snapshot:\033[0m", err) 
+		fmt.Println("\033[31mError creating process snapshot:\033[0m", err)
 		return
 	}
 	defer syscall.CloseHandle(snapshot)
 
-	var entry syscall.ProcessEntry32
 	entry.Size = uint32(unsafe.Sizeof(entry))
 
 	err = syscall.Process32First(snapshot, &entry)
 	if err != nil {
-		fmt.Println("\033[31mError retrieving first process:\033[0m", err) 
+		fmt.Println("\033[31mError retrieving first process:\033[0m", err)
 		return
 	}
 
 	fmt.Println("\033[32mProcesses:\033[0m")
 	for {
-		processName := syscall.UTF16ToString(entry.ExeFile[:]) // convert the exefile name string from UTF-16 to UTF-8 
-		
+		processName := syscall.UTF16ToString(entry.ExeFile[:]) // convert the exefile name string from UTF-16 to UTF-8
+
 		fmt.Printf("\033[32mPid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d\033[0m\n",
 			entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
 
 		err = syscall.Process32Next(snapshot, &entry)
 		if err != nil {
-			fmt.Println("\033[33mNo more processes...\033[0m") 
-			break                                              // No more processes to enumerate
+			fmt.Println("\033[33mNo more processes...\033[0m")
+			break // No more processes to enumerate
 		}
 	}
 }
 
 // Function to get detailed information about a specific process
 func GetProcessInfo(pid int) {
-	fmt.Printf("\033[34mFetching information for PID: %d\033[0m\n", pid)
-	// Logic to retrieve process info
+	fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pid) // Cyan for info retrieval
+
+	// Ottenere il processo
+	hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, uint32(pid))
+	if err != nil {
+		fmt.Println("\033[31mError opening process:\033[0m", err) // Red for error messages
+		return
+	}
+	defer windows.CloseHandle(hProcess)
+
+	var pe windows.ProcessBasicInformation
+	// Ottieni informazioni di base sul processo
+	_, err = windows.NtQueryInformationProcess(hProcess, windows.ProcessBasicInformation, uintptr(unsafe.Pointer(&pe)), unsafe.Sizeof(pe), nil)
+	if err != nil {
+		fmt.Println("\033[31mError querying process information:\033[0m", err) // Red for error messages
+		return
+	}
+
+	// Ottenere il nome del processo
+	var processName [windows.MAX_PATH]uint16
+	processPathLength := uint32(len(processName) * 2)
+	_, err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
+	if err != nil {
+		fmt.Println("\033[31mError retrieving process name:\033[0m", err) // Red for error messages
+		return
+	}
+
+	// Convertire il nome del processo in stringa
+	name := windows.UTF16ToString(processName[:])
+
+	// Stampa delle informazioni del processo
+	fmt.Printf("\033[32mPID: %d\tNome: %s\tUtilizzo Memoria: %d\tData di Avvio: %s\tPriorità: %d\tThread: %d\033[0m\n",
+		pid, name, pe.MemoryLimits.WorkingSetSize, pe.CreateTime, pe.PriorityClass, pe.NumberOfThreads)
 }
 
 // Function to terminate a process by its PID
@@ -140,3 +174,4 @@ func main() {
 		fmt.Println("\033[31mError: Unknown command. Please use 'list', 'info', etc.\033[0m")
 	}
 }
+s
