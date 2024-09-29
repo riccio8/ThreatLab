@@ -126,7 +126,6 @@ func WriteMemory(pid int, address string, data string) {
 	// Logic to write memory
 }
 
-
 func DisplayHelp() {
 	fmt.Println("Use help for display this massage...")
 	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]\033[0m")
@@ -147,12 +146,11 @@ func DisplayHelp() {
 	fmt.Println("\033[37m- Ensure you have sufficient permissions to execute commands on the processes you target.\033[0m")
 }
 
-
 func main() {
 	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'general' args as first one... \033[0m")
-	
-	time.Sleep(1 * time.Second) 
-	
+
+	time.Sleep(1 * time.Second)
+
 	if len(os.Args) < 2 {
 		fmt.Println("\033[31mError: No command provided. Please use 'list', 'info <pid>', etc.\033[0m")
 		return
@@ -208,10 +206,11 @@ func main() {
 	case "generic":
 		generic()
 		// Convert PID from string to int and call WriteMemory
+
+	case "help":
+		DisplayHelp()
+
 	default:
 		fmt.Println("\033[31mError: Unknown command. Please use 'list', 'info', etc.\033[0m")
 	}
 }
-
-
-// go get golang.org/x/sys/windows
