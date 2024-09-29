@@ -9,10 +9,10 @@ import (
 
 // Function to list all running processes
 func ListInfoProcesses() {
-	fmt.Println("\033[36mListing all processes...\033[0m") // Cyan for listing processes
+	fmt.Println("\033[36mListing all processes...\033[0m") 
 	snapshot, err := syscall.CreateToolhelp32Snapshot(syscall.TH32CS_SNAPALL, 0)
 	if err != nil {
-		fmt.Println("\033[31mError creating process snapshot:\033[0m", err) // Red for error messages
+		fmt.Println("\033[31mError creating process snapshot:\033[0m", err) 
 		return
 	}
 	defer syscall.CloseHandle(snapshot)
@@ -22,20 +22,20 @@ func ListInfoProcesses() {
 
 	err = syscall.Process32First(snapshot, &entry)
 	if err != nil {
-		fmt.Println("\033[31mError retrieving first process:\033[0m", err) // Red for error messages
+		fmt.Println("\033[31mError retrieving first process:\033[0m", err) 
 		return
 	}
 
-	fmt.Println("\033[32mProcesses:\033[0m") // Green for the header
+	fmt.Println("\033[32mProcesses:\033[0m")
 	for {
-		processName := syscall.UTF16ToString(entry.ExeFile[:])
-		// Highlighting process information in green
+		processName := syscall.UTF16ToString(entry.ExeFile[:]) // convert the exefile name string from UTF-16 to UTF-8 
+		
 		fmt.Printf("\033[32mPid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d\033[0m\n",
 			entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
 
 		err = syscall.Process32Next(snapshot, &entry)
 		if err != nil {
-			fmt.Println("\033[33mNo more processes...\033[0m") // Yellow for end message
+			fmt.Println("\033[33mNo more processes...\033[0m") 
 			break                                              // No more processes to enumerate
 		}
 	}
