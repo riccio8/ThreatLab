@@ -212,3 +212,6 @@ func main() {
 		fmt.Println("\033[31mError: Unknown command. Please use 'list', 'info', etc.\033[0m")
 	}
 }
+
+
+// go get golang.org/x/sys/windows
