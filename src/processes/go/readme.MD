@@ -196,6 +196,6 @@ Contributions are welcome! Please read `CONTRIBUTING.md` for information on how 
 
 ## Contact
 
-For further information or support, feel free to open an issue or contact the maintainer at [email].
+For further information or support, feel free to open an issue or contact the maintainer at riccioadami@gmail.com.
 
 ---
