@@ -18,10 +18,10 @@ This repository contains tools and libraries written in Assembly, Go (Golang), C
   - Unauthorized memory access
     and so on...
     
-- **DOS Tools**: Utilities for interacting with system internals at the DOS level.
+- **DOS Tools**: Utilities for interacting with DOS and DDOS attacks for bug bounty 
 - **Cross-Platform Support**:
-  - **Windows**: Most of the tools are designed to work on Windows systems.
-  - **Linux**: Some tools are specifically designed for Linux environments.
+  - **Windows**: Most of the tools are designed to work on Windows systems. (most golang scripts are designed for windows)
+  - **Linux**: Some tools are specifically designed for Linux environments.(specifically some memory tools)
 
 ## Languages & Tools Used
 
