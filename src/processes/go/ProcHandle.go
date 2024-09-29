@@ -47,14 +47,13 @@ func ListInfoProcesses() {
 }
 
 // Function to get detailed information about a specific process
-
 func GetProcessInfo(pid int) {
-	fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pid) // Cyan for info retrieval
+	fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pid)
 
 	// Open the process with the necessary permissions
 	hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, uint32(pid))
 	if err != nil {
-		fmt.Println("\033[31mError opening process:\033[0m", err) // Red for error messages
+		fmt.Println("\033[31mError opening process:\033[0m", err)
 		return
 	}
 	defer windows.CloseHandle(hProcess)
@@ -64,7 +63,7 @@ func GetProcessInfo(pid int) {
 	processPathLength := uint32(len(processName))
 	err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
 	if err != nil {
-		fmt.Println("\033[31mError retrieving process name:\033[0m", err) // Red for error messages
+		fmt.Println("\033[31mError retrieving process name:\033[0m", err)
 		return
 	}
 
@@ -72,12 +71,12 @@ func GetProcessInfo(pid int) {
 	name := windows.UTF16ToString(processName[:])
 
 	// Print the process information
-	fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pid, name) // Green for process information
+	fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pid, name)
 }
 
 func generic() error {
 	proc := exec.Command("ps")
-	// Utilizziamo Output() per ottenere l'output del comando
+
 	info, err := proc.Output()
 
 	if err != nil {
@@ -85,7 +84,6 @@ func generic() error {
 		return err
 	}
 
-	// Stampiamo l'output del comando
 	fmt.Println(string(info))
 	return nil
 }
@@ -202,15 +200,13 @@ func main() {
 			fmt.Println("\033[31mError: PID, address, and data required for write-memory command.\033[0m")
 			return
 		}
-
+		// Convert PID from string to int, address and data, and call WriteMemory
 	case "generic":
-		generic()
-		// Convert PID from string to int and call WriteMemory
-
-	case "help":
-		DisplayHelp()
-
+		err := generic()
+		if err != nil {
+			fmt.Println("\033[31mError executing generic command:\033[0m", err)
+		}
 	default:
-		fmt.Println("\033[31mError: Unknown command. Please use 'list', 'info', etc.\033[0m")
+		DisplayHelp()
 	}
 }
