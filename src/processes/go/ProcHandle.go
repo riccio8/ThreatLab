@@ -4,11 +4,26 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
-	"time"
+
+	// "time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+)
+
+const (
+	PROCESS_ALL_ACCESS = 0x1F0FFF
+)
+
+const (
+	IDLE_PRIORITY_CLASS           = 0x00000040
+	BELOW_NORMAL_PRIORITY_CLASS   = 0x00040000
+	NORMAL_PRIORITY_CLASS         = 0x00000020
+	ABOVE_NORMAL_PRIORITY_CLASS   = 0x00080000
+	HIGH_PRIORITY_CLASS           = 0x00000080
+	REALTIME_PRIORITY_CLASS       = 0x00000100
 )
 
 var entry syscall.ProcessEntry32
@@ -44,6 +59,8 @@ func ListInfoProcesses() {
 			break // No more processes to enumerate
 		}
 	}
+
+	entry = syscall.ProcessEntry32{}
 }
 
 // Function to get detailed information about a specific process
@@ -72,33 +89,55 @@ func GetProcessInfo(pid int) {
 
 	// Print the process information
 	fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pid, name)
+
+	entry = syscall.ProcessEntry32{}
 }
 
 func generic() error {
-	proc := exec.Command("ps")
-
-	info, err := proc.Output()
-
+	cmd := exec.Command("powershell", "-Command", "Get-Process") // working in powershell, not cmd
+	output, err := cmd.Output()
 	if err != nil {
-		fmt.Println("Error while getting generic infos: ", err)
+		fmt.Println("Error:", err)
 		return err
 	}
 
-	fmt.Println(string(info))
+	entry = syscall.ProcessEntry32{}
+	fmt.Println(string(output))
 	return nil
 }
 
 // Function to terminate a process by its PID
 func TerminateProcess(pid int) {
-	fmt.Printf("\033[31mTerminating process with PID: %d\033[0m\n", pid)
-	// Logic to terminate process
+	fmt.Printf("\033[31mTerminating process with PID: %d...\033[0m\n", pid)
+
+	// Esegui il comando taskkill per terminare il processo
+	cmd := exec.Command("taskkill", "/PID", fmt.Sprint(pid), "/F")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("\033[31mError terminating process:\033[0m %s\n", err)
+		return
+	}
+
+	fmt.Printf("\033[32mProcess terminated successfully:\033[0m %s\n", string(output))
 }
 
 // Function to set the priority of a process
-func SetProcessPriority(pid int, priority string) {
-	fmt.Printf("\033[33mSetting priority for PID: %d to %s\033[0m\n", pid, priority)
-	// Logic to set process priority
+func SetProcessPriority(pid int, priority uint32) error {
+	fmt.Printf("\033[33mSetting priority for PID: %d to %d\033[0m\n", pid, priority)
+	handle, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+	if err != nil {
+		return err
+	}
+	defer windows.CloseHandle(handle)
+
+	err = windows.SetPriorityClass(handle, priority)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
+
 
 // Function to suspend a process by its PID
 func SuspendProcess(pid int) {
@@ -125,6 +164,7 @@ func WriteMemory(pid int, address string, data string) {
 }
 
 func DisplayHelp() {
+	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 	fmt.Println("Use help for display this massage...")
 	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]\033[0m")
 	fmt.Println("\033[33mCommands:\033[0m")
@@ -145,11 +185,9 @@ func DisplayHelp() {
 }
 
 func main() {
-	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'general' args as first one... \033[0m")
-
-	time.Sleep(1 * time.Second)
 
 	if len(os.Args) < 2 {
+		fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 		fmt.Println("\033[31mError: No command provided. Please use 'list', 'info <pid>', etc.\033[0m")
 		return
 	}
@@ -158,45 +196,152 @@ func main() {
 
 	switch command {
 	case "list":
+		fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 		ListInfoProcesses()
 	case "info":
 		if len(os.Args) < 3 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID required for info command.\033[0m")
 			return
 		}
 		// Convert PID from string to int and call GetProcessInfo
-	case "terminate":
+	case "kill":
 		if len(os.Args) < 3 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID required for terminate command.\033[0m")
 			return
 		}
+
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID value. It must be an integer.\033[0m")
+			return
+		}
+		TerminateProcess(pid)
+
 		// Convert PID from string to int and call TerminateProcess
 	case "set-priority":
 		if len(os.Args) < 4 {
+			fmt.Println("\033[36mThis is a tool for process analysis, it is suggested to use the 'generic' args as the first one...\033[0m")
 			fmt.Println("\033[31mError: PID and priority required for set-priority command.\033[0m")
 			return
 		}
+	
+		fmt.Println("\033[33mThose are the following priority classes:\033[0m")
+		fmt.Println("\033[32mIDLE_PRIORITY_CLASS(1) \n" +
+			"BELOW_NORMAL_PRIORITY_CLASS(2)\n" +
+			"NORMAL_PRIORITY_CLASS(3)\n" +
+			"ABOVE_NORMAL_PRIORITY_CLASS(4)\n" +
+			"HIGH_PRIORITY_CLASS(5)\n" +
+			"REALTIME_PRIORITY_CLASS(6)\n" +
+			"INFOS(0)\n\033[0m")
+	
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID. Please enter a numeric value.\033[0m")
+			return
+		}
+	
+		priorityArg := os.Args[3]
+		var priority uint32
+	
+		switch priorityArg {
+		case "1":
+			priority = IDLE_PRIORITY_CLASS
+		case "2":
+			priority = BELOW_NORMAL_PRIORITY_CLASS
+		case "3":
+			priority = NORMAL_PRIORITY_CLASS
+		case "4":
+			priority = ABOVE_NORMAL_PRIORITY_CLASS
+		case "5":
+			priority = HIGH_PRIORITY_CLASS
+		case "6":
+			priority = REALTIME_PRIORITY_CLASS
+		case "0":
+			fmt.Println("Process priority class\tThread priority level\tBase priority")
+			fmt.Println("IDLE_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t2")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t3")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t4")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t5")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t6")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
+			fmt.Println("BELOW_NORMAL_PRIORITY_CLASS\tTHREAD_PRIORITY_IDLE\t1")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t4")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t5")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t6")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t7")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t8")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
+			fmt.Println("NORMAL_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t6")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t7")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t8")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t9")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t10")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
+			fmt.Println("ABOVE_NORMAL_PRIORITY_CLASS\tTHREAD_PRIORITY_IDLE\t1")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t8")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t9")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t10")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t11")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t12")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
+			fmt.Println("HIGH_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t11")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t12")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t13")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t14")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t15")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
+			fmt.Println("REALTIME_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t16")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t22")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t23")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t24")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t25")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t26")
+			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t31")
+
+		default:
+			fmt.Println("\033[31mError: Invalid priority. Please select a value between 1 and 6.\033[0m")
+			return
+		}
+	
+		err = SetProcessPriority(pid, priority)
+		if err != nil {
+			fmt.Println("\033[31mError setting priority:", err, "\033[0m")
+		} else {
+			fmt.Println("\033[32mPriority set successfully.\033[0m")
+		}
+	
+	
+						
 		// Convert PID from string to int and call SetProcessPriority
 	case "suspend":
 		if len(os.Args) < 3 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID required for suspend command.\033[0m")
 			return
 		}
 		// Convert PID from string to int and call SuspendProcess
 	case "resume":
 		if len(os.Args) < 3 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID required for resume command.\033[0m")
 			return
 		}
 		// Convert PID from string to int and call ResumeProcess
 	case "read-memory":
 		if len(os.Args) < 5 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID, address, and size required for read-memory command.\033[0m")
 			return
 		}
 		// Convert PID from string to int, address and size, and call ReadMemory
 	case "write-memory":
 		if len(os.Args) < 5 {
+			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 			fmt.Println("\033[31mError: PID, address, and data required for write-memory command.\033[0m")
 			return
 		}
