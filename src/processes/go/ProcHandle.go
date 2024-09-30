@@ -122,20 +122,35 @@ func TerminateProcess(pid int) {
 // Function to set the priority of a process
 func SetProcessPriority(pid int, priority uint32) error {
 	fmt.Printf("\033[33mSetting priority for PID: %d to %d\033[0m\n", pid, priority)
-	handle, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+
+	// Open process with required access
+	handle, err := windows.OpenProcess(windows.PROCESS_SET_INFORMATION, false, uint32(pid))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open process: %v", err)
 	}
 	defer windows.CloseHandle(handle)
 
-	err = windows.SetPriorityClass(handle, priority)
-	if err != nil {
-		return err
+	// Set the priority class
+	if err := windows.SetPriorityClass(handle, priority); err != nil {
+		return fmt.Errorf("failed to set priority class: %v", err)
 	}
 
 	return nil
 }
 
+func GetThreadPriority(hThread syscall.Handle) {
+	fmt.Println("\033[1;34mThread possibilities:\033[0m")
+	fmt.Println("\033[1;32mReturn code/value \t Description\033[0m")
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_ABOVE_NORMAL \t 1 \t\t Priority 1 point above the priority class.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_BELOW_NORMAL \t -1 \t\t Priority 1 point below the priority class.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_HIGHEST \t 2 \t\t Priority 2 points above the priority class.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_IDLE \t\t -15 \t\t Base priority of 1 for IDLE_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, ABOVE_NORMAL_PRIORITY_CLASS, or HIGH_PRIORITY_CLASS processes, and a base priority of 16 for REALTIME_PRIORITY_CLASS processes.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_LOWEST \t\t -2 \t\t Priority 2 points below the priority class.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_NORMAL \t\t 0 \t\t Normal priority for the priority class.\033[0m")
+	fmt.Println("\033[1;33mTHREAD_PRIORITY_TIME_CRITICAL \t 15 \t\t Base-priority level of 15 for IDLE_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, ABOVE_NORMAL_PRIORITY_CLASS, or HIGH_PRIORITY_CLASS processes, and a base-priority level of 31 for REALTIME_PRIORITY_CLASS processes.\033[0m")
+	fmt.Println("\033[1;34mThread priority: \033[0m", hThread)
+}
 
 // Function to suspend a process by its PID
 func SuspendProcess(pid int) {
@@ -172,91 +187,59 @@ func DisplayHelp() {
 	fmt.Println("\033[32m  set-priority <pid> <priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
 	fmt.Println("\033[32m  suspend <pid>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
 	fmt.Println("\033[32m  resume <pid>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
-	fmt.Println("\033[32m  read-memory <pid> <address> <size>\033[0m \033[37mRead memory at a specific address of a given process. Address should be in hexadecimal format.\033[0m")
-	fmt.Println("\033[32m  write-memory <pid> <address> <data>\033[0m \033[37mWrite data to a specific memory address of a process. Address should be in hexadecimal format.\033[0m")
-	fmt.Println("\033[32m  generic\033[0m                \033[37mExecute a generic command to retrieve process information.\033[0m")
-	fmt.Println("\033[35mNote:\033[0m")
-	fmt.Println("\033[37m- PID is the Process ID you want to perform the operation on.\033[0m")
-	fmt.Println("\033[37m- Addresses should be provided in hexadecimal format (e.g., 0x7ffde000).\033[0m")
-	fmt.Println("\033[37m- The priority can be specified as low, normal, high, or realtime.\033[0m")
-	fmt.Println("\033[37m- Ensure you have sufficient permissions to execute commands on the processes you target.\033[0m")
+	fmt.Println("\033[32m  read-memory <pid> <address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
+	fmt.Println("\033[32m  write-memory <pid> <address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
 }
 
 func main() {
-
 	if len(os.Args) < 2 {
-		fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-		fmt.Println("\033[31mError: No command provided. Please use 'list', 'info <pid>', etc.\033[0m")
+		DisplayHelp()
 		return
 	}
-
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 	command := os.Args[1]
 
 	switch command {
 	case "list":
-		fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
 		ListInfoProcesses()
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	case "info":
 		if len(os.Args) < 3 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID required for info command.\033[0m")
+			fmt.Println("\033[31mError: Missing PID argument for 'info' command.\033[0m")
 			return
 		}
-		// Convert PID from string to int and call GetProcessInfo
-	case "kill":
-		if len(os.Args) < 3 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID required for terminate command.\033[0m")
-			return
-		}
-
 		pid, err := strconv.Atoi(os.Args[2])
 		if err != nil {
-			fmt.Println("\033[31mError: Invalid PID value. It must be an integer.\033[0m")
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
+		}
+		GetProcessInfo(pid)
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+	case "terminate":
+		if len(os.Args) < 3 {
+			fmt.Println("\033[31mError: Missing PID argument for 'terminate' command.\033[0m")
+			return
+		}
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
 			return
 		}
 		TerminateProcess(pid)
-
-		// Convert PID from string to int and call TerminateProcess
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	case "set-priority":
-		if len(os.Args) < 4 {
-			fmt.Println("\033[36mThis is a tool for process analysis, it is suggested to use the 'generic' args as the first one...\033[0m")
-			fmt.Println("\033[31mError: PID and priority required for set-priority command.\033[0m")
+		if len(os.Args) < 3 {
+			fmt.Println("\033[31mError: Missing PID or priority argument for 'set-priority' command.\033[0m")
 			return
 		}
 	
-		fmt.Println("\033[33mThose are the following priority classes:\033[0m")
-		fmt.Println("\033[32mIDLE_PRIORITY_CLASS(1) \n" +
-			"BELOW_NORMAL_PRIORITY_CLASS(2)\n" +
-			"NORMAL_PRIORITY_CLASS(3)\n" +
-			"ABOVE_NORMAL_PRIORITY_CLASS(4)\n" +
-			"HIGH_PRIORITY_CLASS(5)\n" +
-			"REALTIME_PRIORITY_CLASS(6)\n" +
-			"INFOS(0)\n\033[0m")
-	
-		pid, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			fmt.Println("\033[31mError: Invalid PID. Please enter a numeric value.\033[0m")
-			return
-		}
-	
-		priorityArg := os.Args[3]
-		var priority uint32
-	
-		switch priorityArg {
-		case "1":
-			priority = IDLE_PRIORITY_CLASS
-		case "2":
-			priority = BELOW_NORMAL_PRIORITY_CLASS
-		case "3":
-			priority = NORMAL_PRIORITY_CLASS
-		case "4":
-			priority = ABOVE_NORMAL_PRIORITY_CLASS
-		case "5":
-			priority = HIGH_PRIORITY_CLASS
-		case "6":
-			priority = REALTIME_PRIORITY_CLASS
-		case "0":
+		if os.Args[2] == "info" {
 			fmt.Println("Process priority class\tThread priority level\tBase priority")
 			fmt.Println("IDLE_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
 			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t2")
@@ -300,56 +283,110 @@ func main() {
 			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t25")
 			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t26")
 			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t31")
-
-		default:
-			fmt.Println("\033[31mError: Invalid priority. Please select a value between 1 and 6.\033[0m")
+			return // return and exit
+		}
+	
+		if len(os.Args) < 4 {
+			fmt.Println("\033[31mError: Missing priority argument for 'set-priority' command.\033[0m")
 			return
 		}
 	
-		err = SetProcessPriority(pid, priority)
+		priorityStr := os.Args[3]
+		var priority uint32
+	
+		switch priorityStr {
+		case "low":
+			priority = BELOW_NORMAL_PRIORITY_CLASS
+		case "normal":
+			priority = NORMAL_PRIORITY_CLASS
+		case "high":
+			priority = HIGH_PRIORITY_CLASS
+		case "realtime":
+			priority = REALTIME_PRIORITY_CLASS
+		default:
+			fmt.Println("\033[31mError: Invalid priority value. Choose from: low, normal, high, realtime.\033[0m")
+			return
+		}
+	
+		pid, err := strconv.Atoi(os.Args[2])
 		if err != nil {
-			fmt.Println("\033[31mError setting priority:", err, "\033[0m")
-		} else {
-			fmt.Println("\033[32mPriority set successfully.\033[0m")
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
+		}
+	
+		if err := SetProcessPriority(pid, priority); err != nil {
+			fmt.Println("\033[31mError setting process priority:\033[0m", err)
 		}
 	
 	
-						
-		// Convert PID from string to int and call SetProcessPriority
+	// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
 	case "suspend":
 		if len(os.Args) < 3 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID required for suspend command.\033[0m")
+			fmt.Println("\033[31mError: Missing PID argument for 'suspend' command.\033[0m")
 			return
 		}
-		// Convert PID from string to int and call SuspendProcess
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
+		}
+		SuspendProcess(pid)
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	case "resume":
 		if len(os.Args) < 3 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID required for resume command.\033[0m")
+			fmt.Println("\033[31mError: Missing PID argument for 'resume' command.\033[0m")
 			return
 		}
-		// Convert PID from string to int and call ResumeProcess
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
+		}
+		ResumeProcess(pid)
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	case "read-memory":
 		if len(os.Args) < 5 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID, address, and size required for read-memory command.\033[0m")
+			fmt.Println("\033[31mError: Missing PID, address or size argument for 'read-memory' command.\033[0m")
 			return
 		}
-		// Convert PID from string to int, address and size, and call ReadMemory
+		pid, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
+		}
+		address := os.Args[3]
+		size, err := strconv.Atoi(os.Args[4])
+		if err != nil {
+			fmt.Println("\033[31mError: Invalid size value:\033[0m", os.Args[4])
+			return
+		}
+		ReadMemory(pid, address, size)
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	case "write-memory":
 		if len(os.Args) < 5 {
-			fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
-			fmt.Println("\033[31mError: PID, address, and data required for write-memory command.\033[0m")
+			fmt.Println("\033[31mError: Missing PID, address or data argument for 'write-memory' command.\033[0m")
 			return
 		}
-		// Convert PID from string to int, address and data, and call WriteMemory
-	case "generic":
-		err := generic()
+		pid, err := strconv.Atoi(os.Args[2])
 		if err != nil {
-			fmt.Println("\033[31mError executing generic command:\033[0m", err)
+			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
+			return
 		}
+		address := os.Args[3]
+		data := os.Args[4]
+		WriteMemory(pid, address, data)
+		
+		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
 	default:
+		fmt.Println("\033[31mError: Unknown command:\033[0m", command)
 		DisplayHelp()
 	}
 }
