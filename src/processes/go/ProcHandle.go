@@ -75,7 +75,7 @@ func ListInfoProcesses() {
 		err = syscall.Process32Next(snapshot, &entry)
 		if err != nil {
 			fmt.Println("\033[33mNo more processes...\033[0m")
-			break // No more processes to enumerate
+			// No more processes to enumerate
 		}
 	}
 
@@ -85,12 +85,12 @@ func ListInfoProcesses() {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to get detailed information about a specific process
-func GetProcessInfo(pid *os.Process) {
-	pidValue := uint32(pid.Pid) // Convert the *os.Process to uint32
+func GetProcessInfo(pid int) {
+	pidValue := uint32(pid) // Convert the PID to uint32
 	fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pidValue)
 
 	// Open the process with the necessary permissions
-	hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, pidValue)
+	hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION, false, pidValue)
 	if err != nil {
 		fmt.Println("\033[31mError opening process:\033[0m", err)
 		return
@@ -112,6 +112,7 @@ func GetProcessInfo(pid *os.Process) {
 	// Print the process information
 	fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, name)
 }
+
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -288,13 +289,8 @@ func main() {
 			fmt.Println("\033[31mError: Invalid PID value:\033[0m", os.Args[2])
 			return
 		}
-		hpid, err := os.FindProcess(pid) 
-        if err != nil {
-            fmt.Println("\033[31mError: \t \033[0m", os.Args[2])
-            return
-        }
 
-		GetProcessInfo(hpid)
+		GetProcessInfo(pid)
 		
 		// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
