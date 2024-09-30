@@ -1,30 +1,31 @@
-```markdown
+---
+
 # Process Management CLI Tool - Documentation
 
 ## Overview
 
-This tool provides a comprehensive set of commands to manage and interact with processes on a Windows system using Golang. It offers functionality such as listing processes, retrieving detailed information, terminating processes, setting priorities, and more.
+This tool provides a comprehensive set of commands to manage and interact with processes on a Windows system using golang. Below is a detailed description of each available function, including usage examples, arguments, return values, and exceptions.
 
 ## Functions
 
-### 0. `help`
+### 0. help
 
 #### Description
-Print the help message that describes all available commands.
+Print the help message
 
 #### Usage
+
 ```bash
 ProcHandle.exe help
 ```
-
 #### Arguments
 - None
 
 #### Returns
-- A list of available commands and their descriptions.
+- A list of the args
 
 #### Exceptions
-- **None**
+- **None** (i hope)
 
 ### 1. `list`
 
