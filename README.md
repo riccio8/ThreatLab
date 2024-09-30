@@ -4,6 +4,10 @@
 # Process & Memory Analysis Toolkit
 
 ![Golang](https://camo.githubusercontent.com/71a6285538ba19212f6d670be3a9a1a7c1a21f9f6865db3b3251206aadde7c34/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f546f6f6c732532302532362532305265736f7572636573253230417661696c61626c652d3139302d336338356434)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-yellow)
+[![Coverage Status](https://coveralls.io/repos/github/tuo-username/tuo-repository/badge.svg)](https://coveralls.io/github/tuo-username/tuo-repository)
 
 
 ## Description
