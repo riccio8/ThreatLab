@@ -6,8 +6,6 @@ import (
 	"os/exec"
 	"strconv"
 	"syscall"
-
-	// "time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
