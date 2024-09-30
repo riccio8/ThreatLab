@@ -1,17 +1,16 @@
----
-
+```markdown
 # Process Management CLI Tool - Documentation
 
 ## Overview
 
-This tool provides a comprehensive set of commands to manage and interact with processes on a Windows system using golang. Below is a detailed description of each available function, including usage examples, arguments, return values, and exceptions.
+This tool provides a comprehensive set of commands to manage and interact with processes on a Windows system using Golang. It offers functionality such as listing processes, retrieving detailed information, terminating processes, setting priorities, and more.
 
 ## Functions
 
 ### 0. `help`
 
 #### Description
-Print the help message
+Print the help message that describes all available commands.
 
 #### Usage
 ```bash
@@ -22,12 +21,12 @@ ProcHandle.exe help
 - None
 
 #### Returns
-- A list of the args
+- A list of available commands and their descriptions.
 
 #### Exceptions
-- **None** (i hope)
+- **None**
 
-### 1. `ListProcesses`
+### 1. `list`
 
 #### Description
 Lists all the running processes on the system.
@@ -47,7 +46,7 @@ ProcHandle.exe list
 - **PermissionDenied**: If the tool doesn't have sufficient permissions to access the list of processes.
 - **SnapshotFailed**: If there is an error creating the snapshot of processes.
 
-### 2. `GetProcessInfo`
+### 2. `info`
 
 #### Description
 Retrieves detailed information about a specific process by its PID.
@@ -67,7 +66,7 @@ ProcHandle.exe info <pid>
 - **InvalidPID**: If the provided PID does not exist or is not accessible.
 - **PermissionDenied**: If the tool lacks the permissions to access the process details.
 
-### 3. `TerminateProcess`
+### 3. `terminate`
 
 #### Description
 Terminates a process given its PID.
@@ -88,7 +87,7 @@ ProcHandle.exe terminate <pid>
 - **InvalidPID**: If the provided PID does not exist.
 - **AccessDenied**: If the process cannot be terminated (e.g., a critical system process).
 
-### 4. `SetProcessPriority`
+### 4. `set-priority`
 
 #### Description
 Sets the priority class for a given process.
@@ -100,7 +99,7 @@ ProcHandle.exe set-priority <pid> <priority>
 
 #### Arguments
 - `<pid>` (integer): The Process ID of the process whose priority you want to change.
-- `<priority>` (string): The priority class. Possible values are: `low`, `below-normal`, `normal`, `above-normal`, `high`, `realtime`.
+- `<priority>` (string): The priority class. Possible values are: `low`, `normal`, `high`, `realtime`.
 
 #### Returns
 - Confirmation message indicating if the priority was successfully changed.
@@ -110,7 +109,7 @@ ProcHandle.exe set-priority <pid> <priority>
 - **InvalidPriority**: If the specified priority class is not valid.
 - **PermissionDenied**: If the tool lacks the permissions to modify the priority of the process.
 
-### 5. `SuspendProcess`
+### 5. `suspend`
 
 #### Description
 Suspends all threads of a given process.
@@ -130,7 +129,7 @@ ProcHandle.exe suspend <pid>
 - **InvalidPID**: If the provided PID does not exist.
 - **PermissionDenied**: If the tool does not have permissions to suspend the process.
 
-### 6. `ResumeProcess`
+### 6. `resume`
 
 #### Description
 Resumes a suspended process.
@@ -150,7 +149,7 @@ ProcHandle.exe resume <pid>
 - **InvalidPID**: If the provided PID does not exist.
 - **ProcessNotSuspended**: If the specified process is not in a suspended state.
 
-### 7. `ReadMemory`
+### 7. `read-memory`
 
 #### Description
 Reads a specific memory address of a given process.
@@ -173,10 +172,10 @@ ProcHandle.exe read-memory <pid> <address> <size>
 - **InvalidAddress**: If the provided address is not valid.
 - **PermissionDenied**: If the tool lacks permissions to read the memory of the process.
 
-### 8. `WriteMemory`
+### 8. `write-memory`
 
 #### Description
-Writes data to a specific memory address of a given process.
+Writes data to a specific memory address of a process.
 
 #### Usage
 ```bash
@@ -186,35 +185,61 @@ ProcHandle.exe write-memory <pid> <address> <data>
 #### Arguments
 - `<pid>` (integer): The Process ID of the target process.
 - `<address>` (hexadecimal): The memory address to write to.
-- `<data>` (hexadecimal string): The data to write at the specified address.
+- `<data>` (string): The data to write at the specified address.
 
 #### Returns
-- Confirmation message indicating if the memory was written successfully.
+- Confirmation message indicating if the data was successfully written.
 
 #### Exceptions
 - **InvalidPID**: If the provided PID does not exist.
 - **InvalidAddress**: If the provided address is not valid.
 - **PermissionDenied**: If the tool lacks permissions to write to the memory of the process.
 
-## Error Handling
+## Example Usage
 
-All functions provide meaningful error messages to help users diagnose issues quickly. Common error codes include:
+Here are some examples of how to use the tool:
 
-- **PermissionDenied**: Indicates a lack of privileges to perform the requested action. You may need to run the tool with elevated privileges (Administrator mode).
-- **InvalidPID**: The specified Process ID does not correspond to an active process. Ensure the PID is correct.
-- **InvalidAddress**: The memory address provided is either out of range or cannot be accessed.
-- **AccessDenied**: Some system processes or processes owned by other users may not be accessible.
+1. List all running processes:
+   ```bash
+   ProcHandle.exe list
+   ```
 
-## License
+2. Get information about a specific process:
+   ```bash
+   ProcHandle.exe info 1234
+   ```
 
-This tool is provided under the MIT License. See `LICENSE` for more details.
+3. Terminate a process:
+   ```bash
+   ProcHandle.exe terminate 1234
+   ```
 
-## Contributing
+4. Change the priority of a process:
+   ```bash
+   ProcHandle.exe set-priority 1234 high
+   ```
 
-Contributions are welcome! Please read `CONTRIBUTING.md` for information on how to contribute to this project.
+5. Suspend a process:
+   ```bash
+   ProcHandle.exe suspend 1234
+   ```
 
-## Contact
+6. Resume a suspended process:
+   ```bash
+   ProcHandle.exe resume 1234
+   ```
 
-For further information or support, feel free to open an issue or contact the maintainer at riccioadami@gmail.com.
+7. Read memory from a process:
+   ```bash
+   ProcHandle.exe read-memory 1234 0x00400000 256
+   ```
 
----
+8. Write data to a process's memory:
+   ```bash
+   ProcHandle.exe write-memory 1234 0x00400000 "Hello World"
+   ```
+
+## Conclusion
+
+This tool is a powerful command-line utility for managing processes in a Windows environment. It is essential to run it with appropriate permissions to access or modify processes successfully. Use the `help` command to see all available commands and their descriptions.
+```
