@@ -25,11 +25,11 @@ var (
 const (
 	PROCESS_QUERY_INFORMATION = 0x0400
 	PROCESS_SUSPEND_RESUME   = 0x0800
-	PROCESS_ALL_ACCESS       = 0x001F0FFF
 )
 
 const (
-	PROCESS_ALL_ACCESS = 0x1F0FFF
+	INVALID_HANDLE_VALUE = ^uintptr(0)
+	PROCESS_ALL_ACCESS        = 0x1F0FFF
 )
 
 const (
@@ -69,7 +69,8 @@ func ListInfoProcesses() {
 		processName := syscall.UTF16ToString(entry.ExeFile[:]) // convert the exefile name string from UTF-16 to UTF-8
 
 		fmt.Printf("\033[32mPid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d\033[0m\n",
-			entry.Getpid, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
+		entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
+	
 
 		err = syscall.Process32Next(snapshot, &entry)
 		if err != nil {
@@ -183,11 +184,12 @@ func SuspendProcess(pid *os.Process) {
 	defer windows.CloseHandle(hProcess)
 
 	// Suspend the process
-	_, err = procSuspendThread.Call(uintptr(hProcess))
-	if err != nil {
+	ret, _, err := procSuspendThread.Call(uintptr(hProcess))
+	if ret == uintptr(INVALID_HANDLE_VALUE) {
 		fmt.Println("\033[31mError suspending process:\033[0m", err)
 		return
 	}
+	
 
 	fmt.Println("\033[32mProcess suspended successfully\033[0m")
 }
