@@ -47,6 +47,20 @@ const (
 	PROCESS_ALL_ACCESS        = 0x1F0FFF
 )
 
+type ProcessInfo struct {
+    PID            uint32
+    Name           string
+    MemoryRegions  []MemoryRegion
+    TotalCpuTime   int64
+}
+
+// MemoryRegion struct to hold memory region information
+type MemoryRegion struct {
+    BaseAddress uintptr
+    RegionSize  uint64
+}
+
+
 const (
     IDLE_PRIORITY_CLASS           = 0x00000040
     BELOW_NORMAL_PRIORITY_CLASS   = 0x00004000
@@ -56,8 +70,9 @@ const (
     REALTIME_PRIORITY_CLASS       = 0x00000100
 )
 
-var entry syscall.ProcessEntry32
-
+var ( 
+	entry syscall.ProcessEntry32
+)
 //************************************************************************************************************************************************************************************************
 
 
@@ -153,44 +168,76 @@ func ListInfoProcesses() {
 
 // Function to get detailed information about a specific process
 func GetProcessInfo(name string) {
-    for i := 0; i < 1; i++ { 
-        pids, err := FindPidByNamePowerShell(name)
-        
-        if err != nil {
-            fmt.Println("\033[31mError finding process:\033[0m", err)
-            return
-        }
+    // Trova i PIDs per il nome del processo fornito
+    pids, err := FindPidByNamePowerShell(name)
+    if err != nil {
+        fmt.Println("\033[31mError finding process:\033[0m", err)
+        return
+    }
 
-        if len(pids) > 0 {
-            for _, pid := range pids {
-                pidValue := uint32(pid) // Convert the PID to uint32
-                fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pidValue)
+    if len(pids) > 0 {
+        for _, pid := range pids {
+            pidValue := uint32(pid) // Converti il PID in uint32
+            fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pidValue)
 
-                hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, pidValue)
-                if err != nil {
-                    fmt.Println("\033[31mError opening process:\033[0m", err)
-                    continue // Skip to the next PID if there's an error
-                }
-                defer windows.CloseHandle(hProcess)
-
-                var processName [windows.MAX_PATH]uint16
-                processPathLength := uint32(len(processName))
-                err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
-                if err != nil {
-                    fmt.Println("\033[31mError retrieving process name:\033[0m", err)
-                    continue
-                }
-
-                processNameStr := windows.UTF16ToString(processName[:])
-                fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, processNameStr)
+            // Apri il processo con i diritti di accesso necessari
+            hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, pidValue)
+            if err != nil {
+                fmt.Println("\033[31mError opening process:\033[0m", err)
+                continue // Salta al PID successivo se c'è un errore
             }
-        } else {
-            fmt.Println("\033[33mNo processes found with the given name.\033[0m")
+            defer windows.CloseHandle(hProcess) // Assicurati che l'handle venga chiuso quando fatto
+
+            // Recupera il nome completo del processo
+            var processName [windows.MAX_PATH]uint16
+            processPathLength := uint32(len(processName))
+            err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
+            if err != nil {
+                fmt.Println("\033[31mError retrieving process name:\033[0m", err)
+                continue
+            }
+
+            // Converti il nome del processo da UTF16 a una stringa Go
+            processNameStr := windows.UTF16ToString(processName[:])
+            fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, processNameStr)
+
+            // Ottieni informazioni sulla memoria per il processo
+            var memInfo windows.MemoryBasicInformation
+            addr := uintptr(0) // Inizia all'indirizzo 0
+
+            for {
+                // Query memory information for the specified process
+                ret := windows.VirtualQueryEx(hProcess, addr, &memInfo, uintptr(unsafe.Sizeof(memInfo)))
+                if ret != nil {
+                    fmt.Println("\033[31mFinished querying memory regions.\033[0m")
+                    break // Esci dal ciclo se la query fallisce
+                }
+
+                if memInfo.State == windows.MEM_COMMIT {
+                    // Stampa informazioni sulla regione di memoria se è impegnata
+                    fmt.Printf("\033[34mMemory Region: Base Address: %x, Region Size: %d bytes\033[0m\n", memInfo.BaseAddress, memInfo.RegionSize)
+                }
+                addr += memInfo.RegionSize // Passa alla regione successiva
+            }
+
+            // Ottieni informazioni sull'utilizzo della CPU
+            var creationTime, exitTime, kernelTime, userTime windows.Filetime
+            err = windows.GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)
+            if err != nil {
+                fmt.Println("\033[31mError retrieving process times:\033[0m", err)
+                continue
+            }
+
+            // Calcola il tempo totale della CPU utilizzato dal processo
+            cpuTime := kernelTime.Nanoseconds() + userTime.Nanoseconds()
+            fmt.Printf("\033[34mCPU Time: %d nanoseconds\033[0m\n", cpuTime)
         }
+    } else {
+        fmt.Println("\033[33mNo processes found with the given name.\033[0m")
     }
 }
 
-	
+        	
 	
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -404,6 +451,9 @@ func main() {
 		GetProcessInfo(processName)
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+	case "generic":
+		generic()
 		
 	case "kill":
 		if len(os.Args) < 3 {
