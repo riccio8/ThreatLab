@@ -54,11 +54,11 @@ Retrieves detailed information about a specific process by its PID.
 
 #### Usage
 ```bash
-ProcHandle.exe info <pid>
+ProcHandle.exe info <proc_name>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the process you want to query.
+- `<process_name>` (string): The Process name that you want to query.
 
 #### Returns
 - Process details, including memory usage, executable path, start time, and priority class.
@@ -74,11 +74,11 @@ Terminates a process given its PID.
 
 #### Usage
 ```bash
-ProcHandle.exe terminate <pid>
+ProcHandle.exe terminate <proc_name>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the process you want to terminate.
+- `<proc_name>` (string): The Process name that you want to terminate.
 
 #### Returns
 - Confirmation message indicating if the process was terminated successfully.
@@ -95,11 +95,11 @@ Sets the priority class for a given process.
 
 #### Usage
 ```bash
-ProcHandle.exe set-priority <pid> <priority>
+ProcHandle.exe set-priority <proc_name> <priority>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the process whose priority you want to change.
+- `<Proc_name>` (string): The Process name whose priority you want to change.
 - `<priority>` (string): The priority class. Possible values are: `low`, `normal`, `high`, `realtime`.
 
 #### Returns
@@ -117,11 +117,11 @@ Suspends all threads of a given process.
 
 #### Usage
 ```bash
-ProcHandle.exe suspend <pid>
+ProcHandle.exe suspend <proc_name>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the process you want to suspend.
+- `<proc_name>` (string): The Process name that u want to suspend.
 
 #### Returns
 - Confirmation message indicating if the process was successfully suspended.
@@ -137,11 +137,11 @@ Resumes a suspended process.
 
 #### Usage
 ```bash
-ProcHandle.exe resume <pid>
+ProcHandle.exe resume <proc_name>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the process you want to resume.
+- `<Proc_name>` (string): The Process name that you want to resume.
 
 #### Returns
 - Confirmation message indicating if the process was successfully resumed.
@@ -157,11 +157,11 @@ Reads a specific memory address of a given process.
 
 #### Usage
 ```bash
-ProcHandle.exe read-memory <pid> <address> <size>
+ProcHandle.exe read-memory <proc_name> <address> <size>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the target process.
+- `<proc_name>` (string): The Process name of the target process.
 - `<address>` (hexadecimal): The memory address to read.
 - `<size>` (integer): The number of bytes to read.
 
@@ -180,11 +180,11 @@ Writes data to a specific memory address of a process.
 
 #### Usage
 ```bash
-ProcHandle.exe write-memory <pid> <address> <data>
+ProcHandle.exe write-memory <proc_name> <address> <data>
 ```
 
 #### Arguments
-- `<pid>` (integer): The Process ID of the target process.
+- `<proc_name>` (string): The process name of the target process.
 - `<address>` (hexadecimal): The memory address to write to.
 - `<data>` (string): The data to write at the specified address.
 
@@ -207,37 +207,37 @@ Here are some examples of how to use the tool:
 
 2. Get information about a specific process:
    ```bash
-   ProcHandle.exe info 1234
+   ProcHandle.exe info code
    ```
 
 3. Terminate a process:
    ```bash
-   ProcHandle.exe terminate 1234
+   ProcHandle.exe terminate code
    ```
 
 4. Change the priority of a process:
    ```bash
-   ProcHandle.exe set-priority 1234 high
+   ProcHandle.exe set-priority code high
    ```
 
 5. Suspend a process:
    ```bash
-   ProcHandle.exe suspend 1234
+   ProcHandle.exe suspend code
    ```
 
 6. Resume a suspended process:
    ```bash
-   ProcHandle.exe resume 1234
+   ProcHandle.exe resume code
    ```
 
 7. Read memory from a process:
    ```bash
-   ProcHandle.exe read-memory 1234 0x00400000 256
+   ProcHandle.exe read-memory code 0x00400000 256
    ```
 
 8. Write data to a process's memory:
    ```bash
-   ProcHandle.exe write-memory 1234 0x00400000 "Hello World"
+   ProcHandle.exe write-memory code 0x00400000 "Hello World"
    ```
 
 ## FINALLY
