@@ -341,31 +341,35 @@ func closeHandle(handle syscall.Handle) {
 // Function to resume a suspended process
 func ResumeProcess(proc string) {
 	pids, err := FindPidByNamePowerShell(proc)
-    if err != nil{
-        fmt.Println(err)
-    }
-    
-    for _, pid := range pids {
-		fmt.Printf("\033[36mResuming process with PID: %d\033[0m\n", pid)
+	if err != nil{
+		fmt.Println(err)
+	}
 	
-		// Open the file descriptor
+	for _, pid := range pids {
+	
+		fmt.Printf("\033[31mSuspending process with PID: %d...\033[0m\n", pid)
+		
+	
+		// Open the process with required access
 		hProcess, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
 		if err != nil {
-			fmt.Println("\033[31mError opening process for resuming:\033[0m", err)
+			fmt.Println("\033[31mError opening process for suspending:\033[0m", err)
 			return
 		}
 		defer windows.CloseHandle(hProcess)
 	
-		// Resume the process
+
 		_, err = windows.ResumeThread(hProcess)
-		if err != nil {
-			fmt.Println("\033[31mError resuming process:\033[0m", err)
-			return
-		}
+		 if err != nil {
+		 	fmt.Println("\033[31mError suspending process:\033[0m", err)
+		 	return
+
 	
-		fmt.Println("\033[32mProcess resumed successfully\033[0m")
+		fmt.Println("\033[32mProcess suspended successfully\033[0m")
+		}
 	}
 }
+
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
