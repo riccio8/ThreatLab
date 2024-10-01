@@ -47,20 +47,6 @@ const (
 	PROCESS_ALL_ACCESS        = 0x1F0FFF
 )
 
-type ProcessInfo struct {
-    PID            uint32
-    Name           string
-    MemoryRegions  []MemoryRegion
-    TotalCpuTime   int64
-}
-
-// MemoryRegion struct to hold memory region information
-type MemoryRegion struct {
-    BaseAddress uintptr
-    RegionSize  uint64
-}
-
-
 const (
     IDLE_PRIORITY_CLASS           = 0x00000040
     BELOW_NORMAL_PRIORITY_CLASS   = 0x00004000
