@@ -14,6 +14,19 @@ import (
 )
 
 
+const (
+	DELETE          = "0x00010000L" 	//Required to delete the object.
+	READ_CONTROL    = "0x00020000L" 	//Required to read information in the security descriptor for the object, not including the information in the SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information, see SACL Access Right.
+	SYNCHRONIZE     = "0x00100000L" 	//The right to use the object for synchronization. This enables a thread to wait until the object is in the signaled state.
+	WRITE_DAC       = "0x00040000L" 	//Required to modify the DACL in the security descriptor for the object.
+	WRITE_OWNER     ="0x00080000L"      // Required to change the owner in the security descriptor for the object.
+
+)
+
+const (
+	ACCESS = windows.PROCESS_SET_INFORMATION
+)
+
 var (
 	kernel32              = syscall.NewLazyDLL("kernel32.dll")
 	procOpenProcess       = kernel32.NewProc("OpenProcess")
@@ -35,12 +48,12 @@ const (
 )
 
 const (
-	IDLE_PRIORITY_CLASS           = 0x00000040
-	BELOW_NORMAL_PRIORITY_CLASS   = 0x00040000
-	NORMAL_PRIORITY_CLASS         = 0x00000020
-	ABOVE_NORMAL_PRIORITY_CLASS   = 0x00080000
-	HIGH_PRIORITY_CLASS           = 0x00000080
-	REALTIME_PRIORITY_CLASS       = 0x00000100
+    IDLE_PRIORITY_CLASS           = 0x00000040
+    BELOW_NORMAL_PRIORITY_CLASS   = 0x00004000
+    NORMAL_PRIORITY_CLASS         = 0x00000020
+    ABOVE_NORMAL_PRIORITY_CLASS   = 0x00008000
+    HIGH_PRIORITY_CLASS           = 0x00000080
+    REALTIME_PRIORITY_CLASS       = 0x00000100
 )
 
 var entry syscall.ProcessEntry32
@@ -228,17 +241,20 @@ func SetProcessPriority(proc string, priority uint32) error {
         fmt.Println(err)
     }
     
-    for _, pid := range pids {
+    for _, hpid := range pids {
 	// Open the process with required access
-		handle, err := windows.OpenProcess(windows.PROCESS_SET_INFORMATION|windows.PROCESS_QUERY_INFORMATION, false, uint32(pid))
+		pid := uint32(hpid)		
+		handle, err := windows.OpenProcess(ACCESS, false, pid)
 		if err != nil {
 			return fmt.Errorf("error opening process: %v", err)
 		}
 		defer windows.CloseHandle(handle)
 	
 		// Set the priority class
-		if err := windows.SetPriorityClass(handle, priority); err != nil {
-			return fmt.Errorf("error setting priority class: %v", err)
+		err = windows.SetPriorityClass(handle, priority)
+		if err != nil {
+			fmt.Printf("error setting priority class: %v", err)
+			fmt.Println(windows.GetLastError())
 		}
 	
 		return nil
@@ -351,11 +367,11 @@ func DisplayHelp() {
 	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]\033[0m")
 	fmt.Println("\033[33mCommands:\033[0m")
 	fmt.Println("\033[32m  list\033[0m                   \033[37mList all running processes on the system.\033[0m")
-	fmt.Println("\033[32m  info <pid>\033[0m             \033[37mRetrieve detailed information for a specific process by its PID.\033[0m")
-	fmt.Println("\033[32m  kill <pid>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
+	fmt.Println("\033[32m  info <proc_name>\033[0m             \033[37mRetrieve detailed information for a specific process by its PID.\033[0m")
+	fmt.Println("\033[32m  kill <proc_name>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
 	fmt.Println("\033[32m  set-priority <process_name><priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
-	fmt.Println("\033[32m  suspend <pid>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
-	fmt.Println("\033[32m  resume <pid>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
+	fmt.Println("\033[32m  suspend <proc_name>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
+	fmt.Println("\033[32m  resume <proc_name>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
 	fmt.Println("\033[32m  read-memory <process_name><address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
 	fmt.Println("\033[32m  write-memory <process_name><address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
 }
@@ -400,85 +416,97 @@ func main() {
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
-	case "set-priority":
-		if len(os.Args) != 4 {
-			fmt.Println("\033[31mUsage: set-priority <process_name> <priority>\033[0m")
-			return
-		}
-		
-		processName := os.Args[2]
+case "set-priority":
+    if len(os.Args) != 4 && len(os.Args) != 2{
+        fmt.Println("\033[31mUsage: set-priority <process_name> <priority>\033[0m")
+    }
+    
+    processName := os.Args[2]
 
-		if processName == "info" {
-			fmt.Println("Process priority class\tThread priority level\tBase priority")
-			fmt.Println("IDLE_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t2")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t3")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t4")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t5")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t6")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
-			fmt.Println("BELOW_NORMAL_PRIORITY_CLASS\tTHREAD_PRIORITY_IDLE\t1")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t4")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t5")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t6")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t7")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t8")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
-			fmt.Println("NORMAL_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t6")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t7")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t8")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t9")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t10")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
-			fmt.Println("ABOVE_NORMAL_PRIORITY_CLASS\tTHREAD_PRIORITY_IDLE\t1")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t8")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t9")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t10")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t11")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t12")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
-			fmt.Println("HIGH_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t1")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t11")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t12")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t13")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t14")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t15")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t15")
-			fmt.Println("REALTIME_PRIORITY_CLASS\t\tTHREAD_PRIORITY_IDLE\t16")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_LOWEST\t22")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_BELOW_NORMAL\t23")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_NORMAL\t24")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_ABOVE_NORMAL\t25")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_HIGHEST\t26")
-			fmt.Println("\t\t\t\tTHREAD_PRIORITY_TIME_CRITICAL\t31")
-			return // return and exit
-		}
-	
-		if len(os.Args) < 4 {
-			fmt.Println("\033[31mError: Missing priority argument for 'set-priority' command.\033[0m")
-			return
-		}
-	
-		priorityStr := os.Args[3]
-		var priority uint32
-	
-		priorities := map[string]uint32{
-			"low":      BELOW_NORMAL_PRIORITY_CLASS,
-			"normal":   NORMAL_PRIORITY_CLASS,
-			"high":     HIGH_PRIORITY_CLASS,
-			"realtime": REALTIME_PRIORITY_CLASS,
-		}
+    // If the user requests information about priority classes
+    if processName == "info" {
+        fmt.Println("Process Priority Classes and Corresponding Thread Priority Levels:")
+        fmt.Println("----------------------------------------------------------------------")
+        fmt.Println("IDLE_PRIORITY_CLASS          THREAD_PRIORITY_IDLE              1")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            2")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      3")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            4")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      5")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           6")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     15")
+        fmt.Println("BELOW_NORMAL_PRIORITY_CLASS  THREAD_PRIORITY_IDLE              1")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            4")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      5")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            6")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      7")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           8")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     15")
+        fmt.Println("NORMAL_PRIORITY_CLASS        THREAD_PRIORITY_IDLE              1")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            6")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      7")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            8")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      9")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           10")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     15")
+        fmt.Println("ABOVE_NORMAL_PRIORITY_CLASS  THREAD_PRIORITY_IDLE              1")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            8")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      9")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            10")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      11")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           12")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     15")
+        fmt.Println("HIGH_PRIORITY_CLASS          THREAD_PRIORITY_IDLE              1")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            11")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      12")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            13")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      14")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           15")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     15")
+        fmt.Println("REALTIME_PRIORITY_CLASS      THREAD_PRIORITY_IDLE              16")
+        fmt.Println("                             THREAD_PRIORITY_LOWEST            22")
+        fmt.Println("                             THREAD_PRIORITY_BELOW_NORMAL      23")
+        fmt.Println("                             THREAD_PRIORITY_NORMAL            24")
+        fmt.Println("                             THREAD_PRIORITY_ABOVE_NORMAL      25")
+        fmt.Println("                             THREAD_PRIORITY_HIGHEST           26")
+        fmt.Println("                             THREAD_PRIORITY_TIME_CRITICAL     31")
+		fmt.Println("Priority Mappings:")
+        fmt.Println("----------------------------------------------------------------------")
+        fmt.Println("\"idle\":          windows.IDLE_PRIORITY_CLASS")
+        fmt.Println("\"below_normal\":  windows.BELOW_NORMAL_PRIORITY_CLASS")
+        fmt.Println("\"low\":           windows.BELOW_NORMAL_PRIORITY_CLASS")
+        fmt.Println("\"normal\":        windows.NORMAL_PRIORITY_CLASS")
+        fmt.Println("\"above_normal\":  windows.ABOVE_NORMAL_PRIORITY_CLASS")
+        fmt.Println("\"high\":          windows.HIGH_PRIORITY_CLASS")
+        fmt.Println("\"realtime\":      windows.REALTIME_PRIORITY_CLASS")
+        return
+    }
 
-		priority, exists := priorities[priorityStr]
-		if !exists {
-			fmt.Println("\033[31mError: Invalid priority value\033[0m")
-			return
-		}
-	
-		if err := SetProcessPriority(processName, priority); err != nil {
-			fmt.Println("\033[31mError setting process priority:\033[0m", err)
-		}
+    // Get the priority argument from the command line
+    priorityStr := os.Args[3]
+    
+    // Define a map to convert priority name to Windows constant
+    priorityMap := map[string]uint32{
+        "idle":          windows.IDLE_PRIORITY_CLASS,
+        "below_normal":  windows.BELOW_NORMAL_PRIORITY_CLASS,
+        "low":           windows.BELOW_NORMAL_PRIORITY_CLASS, // Added this line
+        "normal":        windows.NORMAL_PRIORITY_CLASS,
+        "above_normal":  windows.ABOVE_NORMAL_PRIORITY_CLASS,
+        "high":          windows.HIGH_PRIORITY_CLASS,
+        "realtime":      windows.REALTIME_PRIORITY_CLASS,
+    }
+
+    // Find the corresponding priority class
+    priority, exists := priorityMap[priorityStr]
+    if !exists {
+        fmt.Println("\033[31mError: Invalid priority value\033[0m")
+        return
+    }
+
+    // Set the process priority for the specified process using the uint32 priority value
+    if err := SetProcessPriority(processName, priority); err != nil {
+        fmt.Println("\033[31mError setting process priority:\033[0m", err)
+    }
+
 		
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -540,3 +568,5 @@ func main() {
 
 	// comming soon
 // func GetThreadPriority(hThread syscall.Handle) {
+// and
+// netowrk visualizer for processes and anti debugger
