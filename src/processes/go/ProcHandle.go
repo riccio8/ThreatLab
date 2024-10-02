@@ -272,8 +272,6 @@ func VirtualProtection(name string, lpAddress uintptr, dwSize uintptr, flNewProt
 	    }   
 	    
 	}
-	
-	
 }
 
 
@@ -686,7 +684,7 @@ case "set-priority":
 	}	
 }
 
-	// comming soon
-// func GetThreadPriority(hThread syscall.Handle) {
-// and
-// netowrk visualizer for processes and anti debugger
+// comming soon
+	// func GetThreadPriority(hThread syscall.Handle) {
+	// and
+	// netowrk visualizer for processes and anti debugger
