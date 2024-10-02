@@ -266,7 +266,7 @@ Here are some examples of how to use the tool:
    ProcHandle.exe write-memory code 0x00400000 "Hello World"
    ```
    
-9 Protect an address region:
+9. Protect an address region:
    ```bash
    ProcHandle.exe protect code 0x7ffdf000 4096 PAGE_READWRITE
    ```
