@@ -196,6 +196,32 @@ ProcHandle.exe write-memory <proc_name> <address> <data>
 - **InvalidAddress**: If the provided address is not valid.
 - **PermissionDenied**: If the tool lacks permissions to write to the memory of the process.
 
+### 9. `protect`
+
+#### Description
+Protect address of the specified process with a specific permission
+
+#### Usage
+```bash
+protect <process_name> <lpAddress> <dwSize> <flNewProtect>
+```
+
+#### Arguments
+- `<process_name>` (string): The name of the target process whose memory permissions you want to modify.
+- `<lpAddress>` (hexadecimal): The memory address of the region that will be protected.
+- `<dwSize>` (int): The size (in bytes) of the memory region that you want to protect.
+- `<flNewProtect>` (string or integer): The new protection level for the specified memory region. This parameter should be provided as a valid memory protection constant, such as `PAGE_READONLY`, `PAGE_READWRITE`, `PAGE_EXECUTE`, etc.
+
+#### Returns
+- A confirmation message indicating if the memory protection was successfully changed. If successful, it shows that the specified address was modified with the new permissions.
+
+#### Exceptions
+- **InvalidPID**: Raised when the process ID for the given process name does not exist.
+- **InvalidAddress**: Raised when the provided address is not valid within the memory space of the process.
+- **PermissionDenied**: Raised if the tool lacks permissions to modify the memory of the target process. This usually occurs if the script is not run with sufficient privileges (e.g., administrator rights).
+
+
+
 ## Example Usage
 
 Here are some examples of how to use the tool:
@@ -238,6 +264,11 @@ Here are some examples of how to use the tool:
 8. Write data to a process's memory:
    ```bash
    ProcHandle.exe write-memory code 0x00400000 "Hello World"
+   ```
+   
+9 Protect an address region:
+   ```bash
+   protect code 0x7ffdf000 4096 PAGE_READWRITE
    ```
 
 ## FINALLY
