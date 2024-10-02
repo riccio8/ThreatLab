@@ -423,37 +423,36 @@ func ResumeProcess(proc string) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to read memory from a specific process
-func ReadMemory(proc string, address int, data string) {
-	pids, err := FindPidByNamePowerShell(proc)
-	if err != nil {
-		fmt.Println("\033[31mError finding process:\033[0m", err)
-		return // Added return to avoid proceeding if there's an error
-	}
+func ReadMemory(proc string, address uintptr, size int) {
+    pids, err := FindPidByNamePowerShell(proc)
+    if err != nil {
+        fmt.Println("\033[31mError finding process:\033[0m", err)
+        return
+    }
 
-	for _, pid := range pids {
-		fmt.Printf("\033[32mReading data to memory address: %x for PID: %d\033[0m\n", address, pid)
+    for _, pid := range pids {
+        fmt.Printf("\033[32mReading data to memory address: %x for PID: %d\033[0m\n", address, pid)
 
-		// Open the process with required access
-		hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
-		if err != nil {
-			fmt.Println("\033[31mError opening process for reading:\033[0m", err)
-			continue
-		}
-		defer windows.CloseHandle(hProcess)
+        hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+        if err != nil {
+            fmt.Println("\033[31mError opening process for reading:\033[0m", err)
+            continue
+        }
+        defer windows.CloseHandle(hProcess)
 
-		// Convert the data string to a byte slice
-		dataBytes := []byte(data)
+        dataBytes := make([]byte, size) // Allocate a buffer for the data to read
 
-		// read data from memory
-		err = windows.ReadProcessMemory(hProcess, uintptr(address), &dataBytes[0], uintptr(len(dataBytes)), nil)
-		if err != nil {
-			fmt.Println("\033[31mError reading to process memory:\033[0m", err)
-			continue
-		}else{
-			fmt.Printf("\033[Reading data to memory address: %x for PID: %d with that bytes: %d \033[0m\n", address, pid, len(dataBytes))
-		}
-	}
+        // Read memory
+        err = windows.ReadProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), nil)
+        if err != nil {
+            fmt.Println("\033[31mError reading to process memory:\033[0m", err)
+            continue
+        }
+
+        fmt.Printf("\033[32mRead data from memory address: %x for PID: %d with %d bytes\033[0m\n", address, pid)
+    }
 }
+
 
 
 
@@ -502,10 +501,10 @@ func DisplayHelp() {
 	fmt.Println("\033[32m  list\033[0m                   \033[37mList all running processes on the system.\033[0m")
 	fmt.Println("\033[32m  info <proc_name>\033[0m             \033[37mRetrieve detailed information for a specific process by its PID.\033[0m")
 	fmt.Println("\033[32m  kill <proc_name>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
-	fmt.Println("\033[32m  set-priority <process_name><priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
+	fmt.Println("\033[32m  set-priority <process_name> <priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
 	fmt.Println("\033[32m  suspend <proc_name>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
 	fmt.Println("\033[32m  resume <proc_name>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
-	fmt.Println("\033[32m  read-memory <process_name><address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
+	fmt.Println("\033[32m  read-memory <process_name> <address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
 	fmt.Println("\033[32m  write-memory <process_name><address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
 	fmt.Println("\033[32m  protect <process_name> <lpAddress> <dwSize> <flNewProtect>\033[0m \033[37mChange the type of permits of a specific memory region which belongs to the process given by name.\033[0m")
 	
@@ -721,8 +720,10 @@ case "read-memory":
 	}
 	processName := os.Args[2]
 	addressStr := os.Args[3]
-	data := os.Args[4]
-
+	sizeStr, err := strconv.Atoi(os.Args[4])
+	if err != nil {
+		fmt.Println("\033[31mError converting the size into an int:\033[0m", err)
+	}
 	address, err := strconv.ParseUint(addressStr, 0, 64) // ParseUint is used to convert an hex into integer
 	if err != nil {
 		fmt.Println("\033[31mError parsing address:\033[0m", err)
@@ -730,7 +731,7 @@ case "read-memory":
 	}
 
 	// Chiama la funzione WriteMemory
-	ReadMemory(processName, int(address), data)
+	ReadMemory(processName, uintptr(address), sizeStr)
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
