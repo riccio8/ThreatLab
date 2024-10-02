@@ -35,6 +35,7 @@ var (
 	procSuspendThread      = kernel32.NewProc("SuspendThread")
 	procCloseHandle        = kernel32.NewProc("CloseHandle")
 	procVirtualProtectEx   = kernel32.NewProc("VirtualProtectEx")
+	WriteProcessMemory     = kernel32.NewProc("WriteProcessMemory")
 )
 
 
@@ -306,9 +307,9 @@ func SetProcessPriority(proc string, priority uint32) error {
 	fmt.Printf("\033[33mSetting priority for PROCESS: %s to %d\033[0m\n", proc, priority)
 	
 	pids, err := FindPidByNamePowerShell(proc)
-    if err != nil{
-        fmt.Println(err)
-    }
+	if err != nil {
+		fmt.Println("\033[31mError finding process:\033[0m", err)
+	}
     
     for _, hpid := range pids {
 	// Open the process with required access
@@ -337,9 +338,9 @@ func SetProcessPriority(proc string, priority uint32) error {
 //suspend te thread of the process
 func SuspendProcess(proc string) {
 	pids, err := FindPidByNamePowerShell(proc)
-    if err != nil{
-        fmt.Println(err)
-    }
+	if err != nil {
+		fmt.Println("\033[31mError finding process:\033[0m", err)
+	}
     
     for _, pid := range pids {
 	
@@ -361,7 +362,7 @@ func SuspendProcess(proc string) {
 		// 	return
 		// }
 	
-		fmt.Println("\033[32mProcess suspended successfully\033[0m")
+		// fmt.Println("\033[32mProcess suspended successfully\033[0m")
 	}
 }
 
@@ -377,8 +378,8 @@ func closeHandle(handle syscall.Handle) {
 // Function to resume a suspended process
 func ResumeProcess(proc string) {
 	pids, err := FindPidByNamePowerShell(proc)
-	if err != nil{
-		fmt.Println(err)
+	if err != nil {
+		fmt.Println("\033[31mError finding process:\033[0m", err)
 	}
 	
 	for _, pid := range pids {
@@ -410,11 +411,11 @@ func ResumeProcess(proc string) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to read memory from a specific process
-func ReadMemory(proc string, address string, size int) {
+func ReadMemory(proc string, address string, size uintptr) {
 	pid, err := FindPidByNamePowerShell(proc)
-    if err != nil{
-        fmt.Println(err)
-    }
+	if err != nil {
+		fmt.Println("\033[31mError finding process:\033[0m", err)
+	}
 	fmt.Printf("\033[37mReading memory at address: %s for PID: %d\033[0m\n", address, pid)
 	// Logic to read memory
 }
@@ -423,13 +424,36 @@ func ReadMemory(proc string, address string, size int) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to write data to a specific memory address of a process
-func WriteMemory(proc string, address string, data string) {
-	pid, err := FindPidByNamePowerShell(proc)
-    if err != nil{
-    fmt.Println(err)
+func WriteMemory(proc string, address int, data string) {
+    pids, err := FindPidByNamePowerShell(proc)
+    if err != nil {
+        fmt.Println("\033[31mError finding process:\033[0m", err)
+        return // Added return to avoid proceeding if there's an error
     }
-	fmt.Printf("\033[32mWriting data to memory address: %s for PID: %d\033[0m\n", address, pid)
-	// Logic to write memory
+
+    for _, pid := range pids {
+        fmt.Printf("\033[32mWriting data to memory address: %x for PID: %d\033[0m\n", address, pid)
+
+        // Open the process with required access
+        hProcess, err := windows.OpenProcess(ACCESS, false, uint32(pid))
+        if err != nil {
+            fmt.Println("\033[31mError opening process for writing:\033[0m", err)
+            continue
+        }
+        defer windows.CloseHandle(hProcess)
+
+        // Convert the data string to a byte slice
+        dataBytes := []byte(data)
+
+        // Write data to memory
+        err = windows.WriteProcessMemory(hProcess, uintptr(address), &dataBytes[0], uintptr(len(dataBytes)), nil)
+        if err != nil {
+            fmt.Println("\033[31mError writing to process memory:\033[0m", err)
+            continue
+        }else{
+            fmt.Printf("\033[32mWriting data to memory address: %x for PID: %d with that bytes: %d \033[0m\n", address, pid, len(dataBytes))
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -447,6 +471,8 @@ func DisplayHelp() {
 	fmt.Println("\033[32m  resume <proc_name>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
 	fmt.Println("\033[32m  read-memory <process_name><address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
 	fmt.Println("\033[32m  write-memory <process_name><address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
+	fmt.Println("\033[32m  protect <process_name> <lpAddress> <dwSize> <flNewProtect>\033[0m \033[37mChange the type of permits of a specific memory region which belongs to the process given by name.\033[0m")
+	
 }
 
 func main() {
@@ -662,19 +688,30 @@ case "set-priority":
 			fmt.Println("\033[31mError: Invalid size value:\033[0m", os.Args[4])
 			return
 		}
-		ReadMemory(processName, address, size)
+		ReadMemory(processName, address, uintptr(size))
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
-	case "write-memory":
-		if len(os.Args) < 5 {
-			fmt.Println("\033[31mUsage: write-memory <process_name> <address> <data>\033[0m")
-			return
-		}
-		processName := os.Args[2]
-		address := os.Args[3]
-		data := os.Args[4]
-		WriteMemory(processName, address, data)
+case "write-memory":
+	example := "Hello, world!"
+	if len(os.Args) < 5 {
+		fmt.Println("\033[31mUsage: write-memory <process_name> <address> <data>\033[0m")
+		fmt.Println("\033[33mSample: ProcHandle.exe write-memory code 0x7FFDE000 \033[0m", example) 
+		return
+	}
+	processName := os.Args[2]
+	addressStr := os.Args[3]
+	data := os.Args[4]
+
+	address, err := strconv.ParseUint(addressStr, 0, 64) // ParseUint is used to convert an hex into integer
+	if err != nil {
+		fmt.Println("\033[31mError parsing address:\033[0m", err)
+		return
+	}
+
+	// Chiama la funzione WriteMemory
+	WriteMemory(processName, int(address), data)
+
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
