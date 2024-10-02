@@ -28,24 +28,15 @@ const (
 )
 
 var (
-	kernel32              = syscall.NewLazyDLL("kernel32.dll")
-	procOpenProcess       = kernel32.NewProc("OpenProcess")
-	procEnumProcesses     = kernel32.NewProc("EnumProcesses")
+	kernel32               = syscall.NewLazyDLL("kernel32.dll")
+	procOpenProcess        = kernel32.NewProc("OpenProcess")
+	procEnumProcesses      = kernel32.NewProc("EnumProcesses")
 	procEnumProcessThreads = kernel32.NewProc("EnumProcessThreads")
 	procSuspendThread      = kernel32.NewProc("SuspendThread")
 	procCloseHandle        = kernel32.NewProc("CloseHandle")
+	procVirtualProtectEx   = kernel32.NewProc("VirtualProtectEx")
 )
 
-
-const (
-	PROCESS_QUERY_INFORMATION = 0x0400
-	PROCESS_SUSPEND_RESUME   = 0x0800
-)
-
-const (
-	INVALID_HANDLE_VALUE = ^uintptr(0)
-	PROCESS_ALL_ACCESS        = 0x1F0FFF
-)
 
 const (
     IDLE_PRIORITY_CLASS           = 0x00000040
@@ -154,7 +145,7 @@ func ListInfoProcesses() {
 
 // Function to get detailed information about a specific process
 func GetProcessInfo(name string) {
-    // Trova i PIDs per il nome del processo fornito
+    
     pids, err := FindPidByNamePowerShell(name)
     if err != nil {
         fmt.Println("\033[31mError finding process:\033[0m", err)
@@ -163,18 +154,18 @@ func GetProcessInfo(name string) {
 
     if len(pids) > 0 {
         for _, pid := range pids {
-            pidValue := uint32(pid) // Converti il PID in uint32
+            pidValue := uint32(pid)
             fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pidValue)
 
-            // Apri il processo con i diritti di accesso necessari
+            
             hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, pidValue)
             if err != nil {
                 fmt.Println("\033[31mError opening process:\033[0m", err)
-                continue // Salta al PID successivo se c'è un errore
+                continue 
             }
-            defer windows.CloseHandle(hProcess) // Assicurati che l'handle venga chiuso quando fatto
+            defer windows.CloseHandle(hProcess) 
 
-            // Recupera il nome completo del processo
+           
             var processName [windows.MAX_PATH]uint16
             processPathLength := uint32(len(processName))
             err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
@@ -183,30 +174,30 @@ func GetProcessInfo(name string) {
                 continue
             }
 
-            // Converti il nome del processo da UTF16 a una stringa Go
+            
             processNameStr := windows.UTF16ToString(processName[:])
             fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, processNameStr)
 
-            // Ottieni informazioni sulla memoria per il processo
+            /
             var memInfo windows.MemoryBasicInformation
-            addr := uintptr(0) // Inizia all'indirizzo 0
+            addr := uintptr(0)
 
             for {
                 // Query memory information for the specified process
                 ret := windows.VirtualQueryEx(hProcess, addr, &memInfo, uintptr(unsafe.Sizeof(memInfo)))
                 if ret != nil {
                     fmt.Println("\033[31mFinished querying memory regions.\033[0m")
-                    break // Esci dal ciclo se la query fallisce
+                    break 
                 }
 
                 if memInfo.State == windows.MEM_COMMIT {
-                    // Stampa informazioni sulla regione di memoria se è impegnata
+                    
                     fmt.Printf("\033[34mMemory Region: Base Address: %x, Region Size: %d bytes\033[0m\n", memInfo.BaseAddress, memInfo.RegionSize)
                 }
-                addr += memInfo.RegionSize // Passa alla regione successiva
+                addr += memInfo.RegionSize 
             }
 
-            // Ottieni informazioni sull'utilizzo della CPU
+            
             var creationTime, exitTime, kernelTime, userTime windows.Filetime
             err = windows.GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)
             if err != nil {
@@ -214,7 +205,7 @@ func GetProcessInfo(name string) {
                 continue
             }
 
-            // Calcola il tempo totale della CPU utilizzato dal processo
+            
             cpuTime := kernelTime.Nanoseconds() + userTime.Nanoseconds()
             fmt.Printf("\033[34mCPU Time: %d nanoseconds\033[0m\n", cpuTime)
         }
@@ -238,6 +229,39 @@ func generic() error {
 	fmt.Println(string(output))
 	return nil
 }
+
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+func VirtuaLprotection(name string, address uintptr, size uintptr,  newProtect uint32,  oldProtect *uint32){
+    var oldProtectVar uint32
+    
+    pids, err := FindPidByNamePowerShell(name)
+    
+    for _, pid := range pids {
+        handle, err := windows.OpenProcess(ACCESS, false, pid)
+        
+        if err != nil {
+            
+            }
+        
+		err := procVirtualProtectEx.Call(
+	        uintptr(hProcess),
+	        lpAddress,
+	        dwSize,
+	        uintptr(flNewProtect),
+	        uintptr(unsafe.Pointer(&oldProtectVar)),
+	    )
+	    if err != nil {
+	        return 0, err
+	    }
+	    return oldProtectVar, nil
+	}
+	return nil
+}
+
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -610,3 +634,4 @@ case "set-priority":
 // func GetThreadPriority(hThread syscall.Handle) {
 // and
 // netowrk visualizer for processes and anti debugger
+// need to add the virtual protect function on a specific handle
