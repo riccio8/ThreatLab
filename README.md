@@ -12,7 +12,7 @@
 
 ## Description
 
-This repository contains tools and libraries written in Assembly, Go (Golang), C++, and Python designed for process and memory analysis, vulnerability detection, and defense against various types of exploits. The project includes DLL files, DOS utilities, and other low-level tools for analyzing system internals, processes, and memory states.
+This repository contains tools and libraries for security written in Assembly, Go (Golang), C++, and Python designed for process and memory analysis, vulnerability detection, and defense against various types of exploits. The project includes DLL files, DOS utilities, and other low-level tools for analyzing system internals, processes, and memory states.
 
 ## Features
 
