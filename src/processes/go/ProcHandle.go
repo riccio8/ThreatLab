@@ -40,6 +40,11 @@ const (
     PROCESS_VM_WRITE            = 0x0020
 )
 
+const (
+    // Define ANSI color codes
+    green = "\033[32m"
+    reset = "\033[0m"
+)
 
 var (
 	kernel32               = syscall.NewLazyDLL("kernel32.dll")
@@ -48,7 +53,11 @@ var (
 	procSuspendThread      = kernel32.NewProc("SuspendThread")
 	procCloseHandle        = kernel32.NewProc("CloseHandle")
 	procVirtualProtectEx   = kernel32.NewProc("VirtualProtectEx")
+)
 
+var (
+    iphlpapi               = syscall.NewLazyDLL("Iphlpapi.dll")
+    procGetExtendedTcpTable = iphlpapi.NewProc("GetExtendedTcpTable")
 )
 
 
@@ -491,6 +500,36 @@ func WriteMemory(proc string, address int, data string) {
     }
 }
 
+
+//  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//  DON'T LIKE THAT METHOD
+func connection() {
+	// Execute the netstat command to get all connections
+	out, err := exec.Command("netstat", "-an").Output()
+    if err != nil {
+        fmt.Println("Error executing netstat:", err)
+        return
+    }
+
+    output := string(out)
+
+    // Split the output into lines
+    lines := strings.Split(output, "\n")
+    fmt.Println(green + "Active Connections:" + reset)
+    
+
+    for _, line := range lines {
+        if line != "" { // Skip empty lines
+            fmt.Println(green + line + reset) 
+        }
+    } 
+}
+
+
+
+
+
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 func DisplayHelp() {
@@ -687,7 +726,7 @@ case "set-priority":
     }
 
 		
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	case "suspend":
 		if len(os.Args) < 3 {
@@ -698,7 +737,13 @@ case "set-priority":
 
 		SuspendProcess(processName)
 		
-	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+		
+	case "connection":
+		connection()
+	
+	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
 		
 	case "resume":
 		if len(os.Args) < 3 {
