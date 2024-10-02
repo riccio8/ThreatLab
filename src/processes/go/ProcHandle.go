@@ -47,6 +47,12 @@ const (
     REALTIME_PRIORITY_CLASS       = 0x00000100
 )
 
+const (
+    PAGE_EXECUTE_READWRITE = 0x40
+    PAGE_READWRITE         = 0x04
+    PROCESS_ALL_ACCESS     = 0x1F0FFF
+)
+
 var ( 
 	entry syscall.ProcessEntry32
 )
@@ -178,7 +184,7 @@ func GetProcessInfo(name string) {
             processNameStr := windows.UTF16ToString(processName[:])
             fmt.Printf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, processNameStr)
 
-            /
+            
             var memInfo windows.MemoryBasicInformation
             addr := uintptr(0)
 
@@ -235,31 +241,39 @@ func generic() error {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-func VirtuaLprotection(name string, address uintptr, size uintptr,  newProtect uint32,  oldProtect *uint32){
+func VirtualProtection(name string, lpAddress uintptr, dwSize uintptr, flNewProtect uint32){
     var oldProtectVar uint32
     
     pids, err := FindPidByNamePowerShell(name)
     
-    for _, pid := range pids {
+    if err != nil {
+        fmt.Printf("\033[36mRetrieving information for PID: %d...\033[0m\n", pids)
+    }
+    
+    for _, hpid := range pids {
+        pid := uint32(hpid)
         handle, err := windows.OpenProcess(ACCESS, false, pid)
         
+        defer windows.CloseHandle(handle)
+        
         if err != nil {
-            
+            fmt.Println("\033[31mError opening process:\033[0m", err)
             }
         
-		err := procVirtualProtectEx.Call(
-	        uintptr(hProcess),
+		ret, _, err:= procVirtualProtectEx.Call(
+	        uintptr(handle),
 	        lpAddress,
 	        dwSize,
 	        uintptr(flNewProtect),
 	        uintptr(unsafe.Pointer(&oldProtectVar)),
 	    )
-	    if err != nil {
-	        return 0, err
-	    }
-	    return oldProtectVar, nil
+	    if err != nil || ret == 0 {
+	        fmt.Println("\033[36mError while calling VirtualProtection ...\033[0m\n", err)
+	    }   
+	    
 	}
-	return nil
+	
+	
 }
 
 
@@ -469,6 +483,48 @@ func main() {
 	case "generic":
 		generic()
 		
+		
+	case "protect":
+		if len(os.Args) < 6 {
+			fmt.Println("\033[31mUsage: protect <process_name> <lpAddress> <dwSize> <flNewProtect>\033[0m")
+			fmt.Println("Available options for flNewProtect: PAGE_EXECUTE_READWRITE, PAGE_READWRITE")
+			return
+		}
+	
+		processName := os.Args[2]
+	
+		// Parsing the arguments for lpAddress and dwSize
+		lpAddress, err := strconv.ParseUint(os.Args[3], 0, 64)
+		if err != nil {
+			fmt.Println("\033[31mError parsing lpAddress:\033[0m", err)
+			return
+		}
+	
+		dwSize, err := strconv.ParseUint(os.Args[4], 0, 64)
+		if err != nil {
+			fmt.Println("\033[31mError parsing dwSize:\033[0m", err)
+			return
+		}
+	
+		// Parsing flNewProtect by matching with available constants
+		var flNewProtect uint32
+		switch os.Args[5] {
+		case "PAGE_EXECUTE_READWRITE":
+			flNewProtect = PAGE_EXECUTE_READWRITE
+		case "PAGE_READWRITE":
+			flNewProtect = PAGE_READWRITE
+		default:
+			fmt.Println("\033[31mError: Invalid value for flNewProtect.\033[0m")
+			fmt.Println("Available options for flNewProtect: PAGE_EXECUTE_READWRITE, PAGE_READWRITE")
+			return
+		}
+	
+		VirtualProtection(processName, uintptr(lpAddress), uintptr(dwSize), flNewProtect)
+	
+	
+	
+
+		
 	case "kill":
 		if len(os.Args) < 3 {
 			fmt.Println("\033[31mUsage: kill <process_name>\033[0m")
@@ -634,4 +690,3 @@ case "set-priority":
 // func GetThreadPriority(hThread syscall.Handle) {
 // and
 // netowrk visualizer for processes and anti debugger
-// need to add the virtual protect function on a specific handle
