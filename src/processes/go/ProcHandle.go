@@ -542,6 +542,7 @@ func DisplayHelp() {
 	fmt.Println("\033[32m  kill <proc_name>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
 	fmt.Println("\033[32m  set-priority <process_name> <priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
 	fmt.Println("\033[32m  suspend <proc_name>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
+	fmt.Println("\033[32m  cpnnection\033[0m          \033[37mRetrievs a list of all current connection.\033[0m")
 	fmt.Println("\033[32m  resume <proc_name>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
 	fmt.Println("\033[32m  read-memory <process_name> <address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
 	fmt.Println("\033[32m  write-memory <process_name><address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
