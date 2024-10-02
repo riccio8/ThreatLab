@@ -268,7 +268,7 @@ Here are some examples of how to use the tool:
    
 9 Protect an address region:
    ```bash
-   protect code 0x7ffdf000 4096 PAGE_READWRITE
+   ProcHandle.exe protect code 0x7ffdf000 4096 PAGE_READWRITE
    ```
 
 ## FINALLY
