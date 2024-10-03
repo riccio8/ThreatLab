@@ -222,6 +222,26 @@ protect <process_name> <lpAddress> <dwSize> <flNewProtect>
 
 
 
+
+
+
+### 9. `protect`
+
+#### Description
+Show the connection on ur local machine
+
+#### Arguments
+- `None` 
+
+#### Returns
+- The list of current connection
+
+#### Exceptions
+- **PermissionDenied**: Raised if the tool lacks permissions to show the connection. This usually occurs if the script is not run with sufficient privileges (e.g., administrator rights).
+
+
+
+
 ## Example Usage
 
 Here are some examples of how to use the tool:
@@ -270,7 +290,13 @@ Here are some examples of how to use the tool:
    ```bash
    ProcHandle.exe protect code 0x7ffdf000 4096 PAGE_READWRITE
    ```
+   
+10. Show the conncetion:
+   ```bash
+   connection
+   ```
 
 ## FINALLY
 
 This tool is a powerful command-line utility for managing processes in a Windows environment. It is essential to run it with appropriate permissions to access or modify processes successfully. Use the `help` command to see all available commands and their descriptions.
+```
