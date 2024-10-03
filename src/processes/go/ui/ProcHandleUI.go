@@ -709,78 +709,93 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 
 func renderForm(w http.ResponseWriter) {
 	tmpl := `
-    <!DOCTYPE html>
-		<html lang="en">
-		<head>
-		    <meta charset="UTF-8">
-		    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-		    <title>Process Management CLI Tool</title>
-		    <style>
-		        body {
-		            font-family: Arial, sans-serif;
-		            background-color: #f0f0f0;
-		            margin: 0;
-		            padding: 0;
-		            display: flex;
-		            justify-content: center;
-		            align-items: center;
-		            height: 100vh;
-		            backdrop-filter: blur(5px); /* Effetto di sfondo opaco */
-		        }
-		        .container {
-		            background-color: rgba(255, 255, 255, 0.9); /* Sfondo bianco opaco */
-		            padding: 30px;
-		            border-radius: 12px;
-		            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-		            width: 450px; /* Larghezza maggiore */
-		            text-align: center;
-		        }
-		        input[type="text"] {
-		            width: 100%;
-		            padding: 12px; /* Maggiore padding */
-		            margin-bottom: 15px;
-		            border: 1px solid #ccc;
-		            border-radius: 4px;
-		            font-size: 16px; /* Dimensione del font maggiore */
-		        }
-		        button {
-		            padding: 12px 25px;
-		            background-color: #007BFF;
-		            color: #fff;
-		            border: none;
-		            border-radius: 4px;
-		            cursor: pointer;
-		            font-size: 16px; /* Dimensione del font maggiore */
-		        }
-		        button:hover {
-		            background-color: #0056b3;
-		        }
-		        .output {
-		            margin-top: 20px;
-		            text-align: left;
-		            background-color: #f9f9f9;
-		            padding: 15px; /* Maggiore padding */
-		            border-radius: 4px;
-		            border: 1px solid #ccc;
-		            max-height: 300px; /* Altezza massima maggiore */
-		            overflow-y: auto;
-		            font-size: 14px; /* Dimensione del font per l'output */
-		            white-space: pre-wrap; /* Mantiene la formattazione del testo */
-		        }
-		    </style>
-		</head>
-		<body>
-		    <div class="container">
-		        <h2>Process Management CLI Tool</h2>
-		        <form method="post">
-		            <input type="text" name="command" placeholder="Command" required>
-		            <input type="text" name="args" placeholder="Arguments (optional)">
-		            <button type="submit">Execute</button>
-		        </form>
-		        <div class="output">{{.Output}}</div>
-		    </div>
-		</body>
-		</html>
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <title>Process Management CLI Tool</title>
+	    <style>
+	        body {
+	            font-family: Arial, sans-serif;
+	            background-color: #f0f0f0;
+	            margin: 0;
+	            padding: 0;
+	            display: flex;
+	            justify-content: center;
+	            align-items: center;
+	            height: 100vh;
+	            backdrop-filter: blur(5px); /* Background blur effect */
+	        }
+	        .container {
+	            background-color: rgba(255, 255, 255, 0.99); /* More opaque background */
+	            padding: 40px; /* Increased padding */
+	            border-radius: 12px;
+	            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4); /* Increased shadow effect */
+	            width: 500px; /* Increased width */
+	            text-align: center;
+	            position: relative;
+	        }
+	        h2 {
+	            font-size: 24px; /* Larger font size for the header */
+	            margin-bottom: 20px; /* Space below the header */
+	        }
+	        input[type="text"] {
+	            width: 100%;
+	            padding: 15px; /* Increased padding */
+	            margin-bottom: 15px;
+	            border: 1px solid #ccc;
+	            border-radius: 4px;
+	            font-size: 18px; /* Larger font size for input */
+	        }
+	        button {
+	            padding: 15px 25px; /* Increased padding */
+	            background-color: #007BFF;
+	            color: #fff;
+	            border: none;
+	            border-radius: 4px;
+	            cursor: pointer;
+	            font-size: 18px; /* Larger font size for button */
+	        }
+	        button:hover {
+	            background-color: #0056b3;
+	        }
+	        .output {
+	            margin-top: 20px;
+	            text-align: left;
+	            background-color: #f9f9f9;
+	            padding: 20px; /* Increased padding */
+	            border-radius: 4px;
+	            border: 1px solid #ccc;
+	            max-height: 400px; /* Increased height for output */
+	            overflow-y: auto;
+	            font-size: 16px; /* Larger font size for output */
+	        }
+	        .footer {
+	            position: absolute;
+	            bottom: 10px; /* Positioning at the bottom */
+	            right: 10px; /* Positioning at the right */
+	            font-size: 14px; /* Font size for footer link */
+	        }
+	    </style>
+	</head>
+	<body>
+	    <div class="container">
+	        <h2>Process Management CLI Tool</h2>
+	        <form method="post">
+	            <input type="text" name="command" placeholder="Command" required>
+	            <input type="text" name="args" placeholder="Arguments (optional)">
+	            <button type="submit">Execute</button>
+	        </form>
+	        <div class="output">{{.Output}}</div>
+	        <div class="footer">
+	            <a href="https://github.com/riccio8/Offensive-defensive-tolls/blob/main/src/processes/go/ui/ProcHandleUI.go" target="_blank">GitHub</a>
+	        </div>
+	    </div>
+	</body>
+	</html>
+
+
 
     `
 	tmplParsed, err := template.New("form").Parse(tmpl)
