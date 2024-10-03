@@ -228,7 +228,7 @@ func GetProcessInfo(name string) (string, error) {
 		output += "No processes found with the given name.\n"
 	}
 
-	return output, nil // Restituisci l'output qui
+	return output, nil 
 }
 
 
