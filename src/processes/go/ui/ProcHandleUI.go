@@ -41,15 +41,8 @@ const (
     PROCESS_VM_WRITE            = 0x0020
 )
 
-const (
-    // Define ANSI color codes
-    green = "\033[32m"
-    reset = "\033[0m"
-)
-
 var (
 	kernel32               = syscall.NewLazyDLL("kernel32.dll")
-	procOpenProcess        = kernel32.NewProc("OpenProcess")
 	procEnumProcessThreads = kernel32.NewProc("EnumProcessThreads")
 	procSuspendThread      = kernel32.NewProc("SuspendThread")
 	procCloseHandle        = kernel32.NewProc("CloseHandle")
@@ -135,9 +128,10 @@ func FindPidByNamePowerShell(processName string) ([]int, error) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to list all running processes
-func ListInfoProcesses() (string, error) {
-	var output string
-	output += "\033[36mListing all processes...\033[0m\n"
+func ListInfoProcesses() ([]string, error) {
+	var output []string
+	output = append(output, "isting all processes...")
+
 	snapshot, err := syscall.CreateToolhelp32Snapshot(syscall.TH32CS_SNAPALL, 0)
 	if err != nil {
 		return output, fmt.Errorf("error creating process snapshot: %w", err)
@@ -152,21 +146,22 @@ func ListInfoProcesses() (string, error) {
 		return output, fmt.Errorf("error retrieving first process: %w", err)
 	}
 
-	output += "\033[32mProcesses:\033[0m\n" 
+	output = append(output, "Processes:")
 	for {
 		processName := syscall.UTF16ToString(entry.ExeFile[:])
-		output += fmt.Sprintf("\033[32mPid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d\033[0m\n",
-			entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags)
+		output = append(output, fmt.Sprintf("Pid: %d\tFile Name: %s\tThread: %d\tHeap Allocation: %d\tProcess Flags: %d",
+			entry.ProcessID, processName, entry.Threads, entry.DefaultHeapID, entry.Flags))
 
 		err = syscall.Process32Next(snapshot, &entry)
 		if err != nil {
-			output += "\033[33mNo more processes...\033[0m\n"
+			output = append(output, "No more processes...")
 			break
 		}
 	}
 
 	return output, nil
 }
+
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -183,11 +178,11 @@ func GetProcessInfo(name string) (string, error) {
 	if len(pids) > 0 {
 		for _, pid := range pids {
 			pidValue := uint32(pid)
-			output += fmt.Sprintf("\033[36mRetrieving information for PID: %d...\033[0m\n", pidValue)
+			output += fmt.Sprintf("Retrieving information for PID: %d...\n", pidValue)
 
 			hProcess, err := windows.OpenProcess(windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_VM_READ, false, pidValue)
 			if err != nil {
-				output += fmt.Sprintf("\033[31mError opening process:\033[0m %v\n", err)
+				output += fmt.Sprintf("Error opening process: %v\n", err)
 				continue
 			}
 			defer windows.CloseHandle(hProcess)
@@ -196,25 +191,25 @@ func GetProcessInfo(name string) (string, error) {
 			processPathLength := uint32(len(processName))
 			err = windows.QueryFullProcessImageName(hProcess, 0, &processName[0], &processPathLength)
 			if err != nil {
-				output += fmt.Sprintf("\033[31mError retrieving process name:\033[0m %v\n", err)
+				output += fmt.Sprintf("Error retrieving process name: %v\n", err)
 				continue
 			}
 
 			processNameStr := windows.UTF16ToString(processName[:])
-			output += fmt.Sprintf("\033[32mPID: %d\tName: %s\033[0m\n", pidValue, processNameStr)
+			output += fmt.Sprintf("PID: %d\tName: %s\n", pidValue, processNameStr)
 
 			var memInfo windows.MemoryBasicInformation
 			addr := uintptr(0)
 
 			for {
 				ret := windows.VirtualQueryEx(hProcess, addr, &memInfo, uintptr(unsafe.Sizeof(memInfo)))
-				if ret == nil {
-					output += "\033[31mFinished querying memory regions.\033[0m\n"
+				if ret != nil { // Cambiato da nil a 0
+					output += "Finished querying memory regions.\n"
 					break
 				}
 
 				if memInfo.State == windows.MEM_COMMIT {
-					output += fmt.Sprintf("\033[34mMemory Region: Base Address: %x, Region Size: %d bytes\033[0m\n", memInfo.BaseAddress, memInfo.RegionSize)
+					output += fmt.Sprintf("\033[34mMemory Region: Base Address: %x, Region Size: %d bytes\n", memInfo.BaseAddress, memInfo.RegionSize)
 				}
 				addr += memInfo.RegionSize
 			}
@@ -222,18 +217,18 @@ func GetProcessInfo(name string) (string, error) {
 			var creationTime, exitTime, kernelTime, userTime windows.Filetime
 			err = windows.GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)
 			if err != nil {
-				output += fmt.Sprintf("\033[31mError retrieving process times:\033[0m %v\n", err)
+				output += fmt.Sprintf("Error retrieving process times: %v\n", err)
 				continue
 			}
 
 			cpuTime := kernelTime.Nanoseconds() + userTime.Nanoseconds()
-			output += fmt.Sprintf("\033[34mCPU Time: %d nanoseconds\033[0m\n", cpuTime)
+			output += fmt.Sprintf("\033[34mCPU Time: %d nanoseconds\n", cpuTime)
 		}
 	} else {
-		output += "\033[33mNo processes found with the given name.\033[0m\n"
+		output += "No processes found with the given name.\n"
 	}
 
-	return output, nil
+	return output, nil // Restituisci l'output qui
 }
 
 
@@ -269,7 +264,7 @@ func VirtualProtection(name string, lpAddress uintptr, dwSize uintptr, flNewProt
 		pid := uint32(hpid)
 		handle, err := windows.OpenProcess(ACCESS, false, pid)
 		if err != nil {
-			output += fmt.Sprintf("\033[31mError opening process:\033[0m %v\n", err)
+			output += fmt.Sprintf("Error opening process: %v\n", err)
 			continue
 		}
 		defer windows.CloseHandle(handle)
@@ -282,11 +277,11 @@ func VirtualProtection(name string, lpAddress uintptr, dwSize uintptr, flNewProt
 			uintptr(unsafe.Pointer(&oldProtectVar)),
 		)
 		if err != nil || ret == 0 {
-			output += fmt.Sprintf("\033[36mError while calling VirtualProtection...\033[0m\n%v\n", err)
+			output += fmt.Sprintf("\033[36mError while calling VirtualProtection...\n%v\n", err)
 		}
+		return output, nil
 	}
-
-	return output, nil
+	return "", nil
 }
 
 
@@ -303,65 +298,70 @@ func TerminateProcess(proc string) (string, error) {
 	}
 
 	for _, pid := range pids {
-		output += fmt.Sprintf("\033[31mTerminating process with PID: %d...\033[0m\n", pid)
+		output += fmt.Sprintf("Terminating process with PID: %d...\n", pid)
 
 		cmd := exec.Command("taskkill", "/PID", fmt.Sprint(pid), "/F")
 		processOutput, err := cmd.CombinedOutput()
 		if err != nil {
-			output += fmt.Sprintf("\033[31mError terminating process:\033[0m %s\n", err)
+			output += fmt.Sprintf("Error terminating process: %s\n", err)
 			return output, err
 		}
 
-		output += fmt.Sprintf("\033[32mProcess terminated successfully:\033[0m %s\n", string(processOutput))
+		output += fmt.Sprintf("Process terminated successfully: %s\n", string(processOutput))
+		return output, nil
 	}
 
-	return output, nil
+	return "", nil
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to set the priority of a process
-func SetProcessPriority(proc string, priority uint32) error {
+func SetProcessPriority(proc string, priority uint32) (string, error) {
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return fmt.Errorf("error finding process: %v", err)
+        return "error finding process: ", err
     }
     
     for _, hpid := range pids {
         pid := uint32(hpid)		
         handle, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, pid)
         if err != nil {
-            return fmt.Errorf("error opening process: %v", err)
+            return "error opening process: ", err
         }
         defer windows.CloseHandle(handle)
     
         err = windows.SetPriorityClass(handle, priority)
         if err != nil {
-            return fmt.Errorf("error setting priority class: %v", err)
-        }
+            return "error setting priority class: ", err
+        } 
+        message := "Priority setted correctly"
+        return message, nil
     }
-    return nil
+	return "", nil
 }
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //suspend te thread of the process
-func SuspendProcess(proc string) {
+func SuspendProcess(proc string) (string, error){
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return
+        return "", err
     }
     
     for _, pid := range pids {
         hProcess, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
         if err != nil {
-            return
+            return "", err
         }
         defer windows.CloseHandle(hProcess)
         // Suspend the process here (uncomment if needed)
-        // _, err = windows.SuspendThread(hProcess)
+        //  _, err = windows.SuspendThread(hProcess)
+        return "Process suspended successfully", nil
     }
+	return "", nil
 }
 
 
@@ -375,24 +375,26 @@ func closeHandle(handle syscall.Handle) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to resume a suspended process
-func ResumeProcess(proc string) {
+func ResumeProcess(proc string) (string, error){
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return
+        return "", err
     }
     
     for _, pid := range pids {
         hProcess, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
         if err != nil {
-            return
+            return "", err
         }
         defer windows.CloseHandle(hProcess)
 
         _, err = windows.ResumeThread(hProcess)
         if err != nil {
-            return
+            return "", nil    
         }
+        return "Process resumed successfully", nil    
     }
+    return "", nil    
 }
 
 
@@ -400,10 +402,10 @@ func ResumeProcess(proc string) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to read memory from a specific process
-func ReadMemory(proc string, address uintptr, size int) {
+func ReadMemory(proc string, address uintptr, size int) (string, error){
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return
+        return "", err
     }
 
     for _, pid := range pids {
@@ -417,9 +419,11 @@ func ReadMemory(proc string, address uintptr, size int) {
 
         err = windows.ReadProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), nil)
         if err != nil {
-            continue
+            return "", err
         }
+        return string(dataBytes), nil
     }
+    return "", nil
 }
 
 
@@ -428,16 +432,16 @@ func ReadMemory(proc string, address uintptr, size int) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to write data to a specific memory address of a process
-func WriteMemory(proc string, address int, data string) {
+func WriteMemory(proc string, address int, data string) (string, error){
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return
+        return "", err
     }
 
     for _, pid := range pids {
         hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
         if err != nil {
-            continue
+            continue 
         }
         defer windows.CloseHandle(hProcess)
 
@@ -445,9 +449,11 @@ func WriteMemory(proc string, address int, data string) {
 
         err = windows.WriteProcessMemory(hProcess, uintptr(address), &dataBytes[0], uintptr(len(dataBytes)), nil)
         if err != nil {
-            continue
+            return "", err
         }
+        return string(dataBytes), nil
     }
+    return "", nil
 }
 
 
@@ -481,24 +487,22 @@ func connection() (string, error) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 func DisplayHelp() {
-	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... \033[0m")
+	fmt.Println("\033[36mThis is a tool for process analysis, is suggested to use the 'generic' args as first one... ")
 	fmt.Println("Use help for display this massage...")
-	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]\033[0m")
-	fmt.Println("\033[33mCommands:\033[0m")
-	fmt.Println("\033[32m  list\033[0m                   \033[37mList all running processes on the system.\033[0m")
-	fmt.Println("\033[32m  info <proc_name>\033[0m             \033[37mRetrieve detailed information for a specific process by its PID.\033[0m")
-	fmt.Println("\033[32m  kill <proc_name>\033[0m        \033[37mTerminate a process by its PID.\033[0m")
-	fmt.Println("\033[32m  set-priority <process_name> <priority>\033[0m \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.\033[0m")
-	fmt.Println("\033[32m  suspend <proc_name>\033[0m          \033[37mSuspend a process by its PID.\033[0m")
-	fmt.Println("\033[32m  cpnnection\033[0m          \033[37mRetrievs a list of all current connection.\033[0m")
-	fmt.Println("\033[32m  resume <proc_name>\033[0m           \033[37mResume a suspended process by its PID.\033[0m")
-	fmt.Println("\033[32m  read-memory <process_name> <address> <size>\033[0m \033[37mRead memory at a specific address of a process.\033[0m")
-	fmt.Println("\033[32m  write-memory <process_name><address> <data>\033[0m \033[37mWrite data to a specific memory address of a process.\033[0m")
-	fmt.Println("\033[32m  protect <process_name> <lpAddress> <dwSize> <flNewProtect>\033[0m \033[37mChange the type of permits of a specific memory region which belongs to the process given by name.\033[0m")
+	fmt.Println("\033[36mUsage: ProcHandle <command> [arguments]")
+	fmt.Println("Commands:")
+	fmt.Println("  list                   \033[37mList all running processes on the system.")
+	fmt.Println("  info <proc_name>             \033[37mRetrieve detailed information for a specific process by its PID.")
+	fmt.Println("  kill <proc_name>        \033[37mTerminate a process by its PID.")
+	fmt.Println("  set-priority <process_name> <priority> \033[37mSet the priority for a process. Priority can be one of: low, normal, high, realtime.")
+	fmt.Println("  suspend <proc_name>          \033[37mSuspend a process by its PID.")
+	fmt.Println("  cpnnection          \033[37mRetrievs a list of all current connection.")
+	fmt.Println("  resume <proc_name>           \033[37mResume a suspended process by its PID.")
+	fmt.Println("  read-memory <process_name> <address> <size> \033[37mRead memory at a specific address of a process.")
+	fmt.Println("  write-memory <process_name><address> <data> \033[37mWrite data to a specific memory address of a process.")
+	fmt.Println("  protect <process_name> <lpAddress> <dwSize> <flNewProtect> \033[37mChange the type of permits of a specific memory region which belongs to the process given by name.")
 	
 }
-
-
 
 
 
@@ -527,24 +531,35 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			}
             lastOutput = "<p><strong>Output:</strong> Retrieved active connections: " +  result + "</p>"
             
-        case "list":
-            conn, err := ListInfoProcesses()
+		case "list":
+			conn, err := ListInfoProcesses()
 			if err != nil {
 				fmt.Println("Error:", err)
 				renderForm(w)
 				return
 			}
-            lastOutput = "<p><strong>Output:</strong> Listed all processes: " + conn + "</p>"
-
-        case "info":
-            if len(args) < 1 {
-                lastOutput = "<p style='color:red;'>Error: Missing process name</p>"
-                renderForm(w)
-                return
-            }
-            GetProcessInfo(args[0])
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Displayed info for process %s</p>", args[0])
-
+		
+			lastOutput = "<p><strong>Output:</strong> Listed all processes:</p><ul>"
+			for _, proc := range conn {
+				lastOutput += "<li>" + proc + "</li>"
+			}
+			lastOutput += "</ul>"
+		
+		
+		case "info":
+			if len(args) < 1 {
+				lastOutput = "<p style='color:red;'>Error: Missing process name argument</p>"
+				renderForm(w)
+				return
+			}
+			result, err := GetProcessInfo(args[0])
+			if err != nil {
+				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
+			} else {
+				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) // Cambiato per supportare il formato multilinea
+			}
+		
+		
 
         case "protect":
             if len(args) < 4 {
@@ -576,8 +591,13 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
-            VirtualProtection(processName, uintptr(lpAddress), uintptr(dwSize), flNewProtect)
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Memory protection updated for process %s</p>", processName)
+			output, err := VirtualProtection(processName, uintptr(lpAddress), uintptr(dwSize), flNewProtect)
+			if err != nil {
+				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
+			} else {
+				lastOutput = output
+			}
+			
 
         case "kill":
             if len(args) < 1 {
@@ -614,7 +634,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
 
-            if err := SetProcessPriority(processName, priority); err != nil {
+            if _, err := SetProcessPriority(processName, priority); err != nil {
                 lastOutput = fmt.Sprintf("<p style='color:red;'>Error setting process priority: %v</p>", err)
                 renderForm(w)
                 return
@@ -690,72 +710,78 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 func renderForm(w http.ResponseWriter) {
 	tmpl := `
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Process Management CLI Tool</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f0f0f0;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
-            .container {
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                width: 400px;
-                text-align: center;
-            }
-            input[type="text"] {
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-            button {
-                padding: 10px 20px;
-                background-color: #007BFF;
-                color: #fff;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            button:hover {
-                background-color: #0056b3;
-            }
-            .output {
-                margin-top: 20px;
-                text-align: left;
-                background-color: #f9f9f9;
-                padding: 10px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-                max-height: 200px;
-                overflow-y: auto;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>Process Management CLI Tool</h2>
-            <form method="post">
-                <input type="text" name="command" placeholder="Command" required>
-                <input type="text" name="args" placeholder="Arguments (optional)">
-                <button type="submit">Execute</button>
-            </form>
-            <div class="output">{{.Output}}</div>
-        </div>
-    </body>
-    </html>
+		<html lang="en">
+		<head>
+		    <meta charset="UTF-8">
+		    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		    <title>Process Management CLI Tool</title>
+		    <style>
+		        body {
+		            font-family: Arial, sans-serif;
+		            background-color: #f0f0f0;
+		            margin: 0;
+		            padding: 0;
+		            display: flex;
+		            justify-content: center;
+		            align-items: center;
+		            height: 100vh;
+		            backdrop-filter: blur(5px); /* Effetto di sfondo opaco */
+		        }
+		        .container {
+		            background-color: rgba(255, 255, 255, 0.9); /* Sfondo bianco opaco */
+		            padding: 30px;
+		            border-radius: 12px;
+		            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+		            width: 450px; /* Larghezza maggiore */
+		            text-align: center;
+		        }
+		        input[type="text"] {
+		            width: 100%;
+		            padding: 12px; /* Maggiore padding */
+		            margin-bottom: 15px;
+		            border: 1px solid #ccc;
+		            border-radius: 4px;
+		            font-size: 16px; /* Dimensione del font maggiore */
+		        }
+		        button {
+		            padding: 12px 25px;
+		            background-color: #007BFF;
+		            color: #fff;
+		            border: none;
+		            border-radius: 4px;
+		            cursor: pointer;
+		            font-size: 16px; /* Dimensione del font maggiore */
+		        }
+		        button:hover {
+		            background-color: #0056b3;
+		        }
+		        .output {
+		            margin-top: 20px;
+		            text-align: left;
+		            background-color: #f9f9f9;
+		            padding: 15px; /* Maggiore padding */
+		            border-radius: 4px;
+		            border: 1px solid #ccc;
+		            max-height: 300px; /* Altezza massima maggiore */
+		            overflow-y: auto;
+		            font-size: 14px; /* Dimensione del font per l'output */
+		            white-space: pre-wrap; /* Mantiene la formattazione del testo */
+		        }
+		    </style>
+		</head>
+		<body>
+		    <div class="container">
+		        <h2>Process Management CLI Tool</h2>
+		        <form method="post">
+		            <input type="text" name="command" placeholder="Command" required>
+		            <input type="text" name="args" placeholder="Arguments (optional)">
+		            <button type="submit">Execute</button>
+		        </form>
+		        <div class="output">{{.Output}}</div>
+		    </div>
+		</body>
+		</html>
+
     `
 	tmplParsed, err := template.New("form").Parse(tmpl)
 	if err != nil {
