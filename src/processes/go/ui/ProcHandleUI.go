@@ -203,7 +203,7 @@ func GetProcessInfo(name string) (string, error) {
 
 			for {
 				ret := windows.VirtualQueryEx(hProcess, addr, &memInfo, uintptr(unsafe.Sizeof(memInfo)))
-				if ret != nil { // Cambiato da nil a 0
+				if ret != nil { 
 					output += "Finished querying memory regions.\n"
 					break
 				}
@@ -469,15 +469,21 @@ func connection() (string, error) {
 
     output := string(out)
     lines := strings.Split(output, "\n")
-    
+
+    var connections []string
     for _, line := range lines {
         if line != "" {
-            return "", nil// Output can be handled as needed
+            connections = append(connections, line) // Collect non-empty lines
         }
-        return line, nil
     }
-    return "", nil
+
+    if len(connections) == 0 {
+        return "No active connections found.", nil
+    }
+
+    return strings.Join(connections, "<br />"), nil // Join lines with HTML line breaks for formatting
 }
+
 
 
 
@@ -526,10 +532,11 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			result, err := connection()
 			if err != nil {
 				fmt.Println("Error:", err)
-				renderForm(w)
-				return
+				lastOutput = "<p style='color:red;'>Error: " + err.Error() + "</p>" // Display the error message
+			} else {
+				lastOutput = "<p><strong>Output:</strong> Retrieved active connections:<br />" + result + "</p>"
 			}
-            lastOutput = "<p><strong>Output:</strong> Retrieved active connections: " +  result + "</p>"
+		
             
 		case "list":
 			conn, err := ListInfoProcesses()
@@ -556,7 +563,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
 			} else {
-				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) // Cambiato per supportare il formato multilinea
+				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) /
 			}
 		
 		
