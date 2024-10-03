@@ -538,6 +538,17 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			}
 		
             
+		case "generic":
+			output, err := generic()
+			if err != nil {
+				fmt.Println("Error:", err)
+				lastOutput = "<p style='color:red;'>Error: " + err.Error() + "</p>" // Display the error message
+				renderForm(w)
+			}
+			lastOutput = "<p><strong>Output:</strong> Retrieved active PROCESSES:<br />" + output + "</p>"
+
+			
+        
 		case "list":
 			conn, err := ListInfoProcesses()
 			if err != nil {
@@ -545,6 +556,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 				renderForm(w)
 				return
 			}
+		
 		
 			lastOutput = "<p><strong>Output:</strong> Listed all processes:</p><ul>"
 			for _, proc := range conn {
@@ -563,7 +575,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
 			} else {
-				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) /
+				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) 
 			}
 		
 		
