@@ -209,7 +209,7 @@ func GetProcessInfo(name string) (string, error) {
 				}
 
 				if memInfo.State == windows.MEM_COMMIT {
-					output += fmt.Sprintf("\033[34mMemory Region: Base Address: %x, Region Size: %d bytes\n", memInfo.BaseAddress, memInfo.RegionSize)
+					output += fmt.Sprintf("Memory Region: Base Address: %x, Region Size: %d bytes\n", memInfo.BaseAddress, memInfo.RegionSize)
 				}
 				addr += memInfo.RegionSize
 			}
@@ -222,7 +222,7 @@ func GetProcessInfo(name string) (string, error) {
 			}
 
 			cpuTime := kernelTime.Nanoseconds() + userTime.Nanoseconds()
-			output += fmt.Sprintf("\033[34mCPU Time: %d nanoseconds\n", cpuTime)
+			output += fmt.Sprintf("CPU Time: %d nanoseconds\n", cpuTime)
 		}
 	} else {
 		output += "No processes found with the given name.\n"
