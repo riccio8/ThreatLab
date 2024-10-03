@@ -15,6 +15,10 @@ import (
 )
 
 
+// ALL THOSE FUNCTIONS WILL BE APLIED ON THE PARENT PROCESS AND ON THE CHILD TOO
+
+
+
 const (
 	DELETE          = "0x00010000L" 	//Required to delete the object.
 	READ_CONTROL    = "0x00020000L" 	//Required to read information in the security descriptor for the object, not including the information in the SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information, see SACL Access Right.
@@ -252,37 +256,47 @@ func generic() (string, error) {
 
 
 func VirtualProtection(name string, lpAddress uintptr, dwSize uintptr, flNewProtect uint32) (string, error) {
-	var output string
-	var oldProtectVar uint32
+    var output string
+    var oldProtectVar uint32
 
-	pids, err := FindPidByNamePowerShell(name)
-	if err != nil {
-		return "", fmt.Errorf("error retrieving information for PID: %w", err)
-	}
+    // Find process IDs by name
+    pids, err := FindPidByNamePowerShell(name)
+    if err != nil {
+        return "", fmt.Errorf("error retrieving information for PID: %w", err)
+    }
 
-	for _, hpid := range pids {
-		pid := uint32(hpid)
-		handle, err := windows.OpenProcess(ACCESS, false, pid)
-		if err != nil {
-			output += fmt.Sprintf("Error opening process: %v\n", err)
-			continue
-		}
-		defer windows.CloseHandle(handle)
+    // Iterate through each PID to attempt memory protection changes
+    for _, hpid := range pids {
+        pid := uint32(hpid)
+        handle, err := windows.OpenProcess(ACCESS, false, pid)
+        if err != nil {
+            output += fmt.Sprintf("Error opening process (PID: %d): %v\n", pid, err) // Include PID in the output
+            continue
+        }
+        defer windows.CloseHandle(handle)
 
-		ret, _, err := procVirtualProtectEx.Call(
-			uintptr(handle),
-			lpAddress,
-			dwSize,
-			uintptr(flNewProtect),
-			uintptr(unsafe.Pointer(&oldProtectVar)),
-		)
-		if err != nil || ret == 0 {
-			output += fmt.Sprintf("\033[36mError while calling VirtualProtection...\n%v\n", err)
-		}
-		return output, nil
-	}
-	return "", nil
+        ret, _, err := procVirtualProtectEx.Call(
+            uintptr(handle),
+            lpAddress,
+            dwSize,
+            uintptr(flNewProtect),
+            uintptr(unsafe.Pointer(&oldProtectVar)),
+        )
+        if err != nil || ret == 0 {
+            output += fmt.Sprintf("Error while calling VirtualProtectEx on PID %d: %v\n", pid, err)
+        } else {
+            output += fmt.Sprintf("Successfully changed protection for PID %d\n", pid) // Success message
+        }
+    }
+
+    // If there were no changes made, we return a message indicating that
+    if output == "" {
+        return "No changes made to memory protection.", nil
+    }
+
+    return output, nil
 }
+
 
 
 
@@ -580,42 +594,48 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		
 		
 
-        case "protect":
-            if len(args) < 4 {
-                lastOutput = "<p style='color:red;'>Error: Missing arguments for protect command</p>"
-                renderForm(w)
-                return
-            }
-            processName := args[0]
-            lpAddress, err := strconv.ParseUint(args[1], 0, 64)
-            if err != nil {
-                lastOutput = fmt.Sprintf("<p style='color:red;'>Error parsing lpAddress: %v</p>", err)
-                renderForm(w)
-                return
-            }
-            dwSize, err := strconv.ParseUint(args[2], 0, 64)
-            if err != nil {
-                lastOutput = fmt.Sprintf("<p style='color:red;'>Error parsing dwSize: %v</p>", err)
-                renderForm(w)
-                return
-            }
-            var flNewProtect uint32
-            switch args[3] {
-            case "PAGE_EXECUTE_READWRITE":
-                flNewProtect = PAGE_EXECUTE_READWRITE
-            case "PAGE_READWRITE":
-                flNewProtect = PAGE_READWRITE
-            default:
-                lastOutput = "<p style='color:red;'>Error: Invalid value for flNewProtect</p>"
-                renderForm(w)
-                return
-            }
+		case "protect":
+			if len(args) < 4 {
+				lastOutput = "<p style='color:red;'>Error: Missing arguments for protect command</p>"
+				renderForm(w)
+				return
+			}
+		
+			processName := args[0]
+			lpAddress, err := strconv.ParseUint(args[1], 0, 64)
+			if err != nil {
+				lastOutput = fmt.Sprintf("<p style='color:red;'>Error parsing lpAddress: %v</p>", err)
+				renderForm(w)
+				return
+			}
+		
+			dwSize, err := strconv.ParseUint(args[2], 0, 64)
+			if err != nil {
+				lastOutput = fmt.Sprintf("<p style='color:red;'>Error parsing dwSize: %v</p>", err)
+				renderForm(w)
+				return
+			}
+		
+			var flNewProtect uint32
+			switch args[3] {
+			case "PAGE_EXECUTE_READWRITE":
+				flNewProtect = PAGE_EXECUTE_READWRITE
+			case "PAGE_READWRITE":
+				flNewProtect = PAGE_READWRITE
+			default:
+				lastOutput = "<p style='color:red;'>Error: Invalid value for flNewProtect</p>"
+				renderForm(w)
+				return
+			}
+		
+			// Call the VirtualProtection function and handle the output
 			output, err := VirtualProtection(processName, uintptr(lpAddress), uintptr(dwSize), flNewProtect)
 			if err != nil {
 				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
 			} else {
-				lastOutput = output
+				lastOutput = "<p><strong>Output:</strong> " + output + "</p>" // Display the output from the VirtualProtection function
 			}
+		
 			
 
         case "kill":
