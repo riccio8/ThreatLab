@@ -28,6 +28,25 @@ const (
 
 )
 
+
+// Access rights for thread.
+const(
+	THREAD_DIRECT_IMPERSONATION      = 0x0200
+	THREAD_GET_CONTEXT               = 0x0008
+	THREAD_IMPERSONATE               = 0x0100
+	THREAD_QUERY_INFORMATION         = 0x0040
+	THREAD_QUERY_LIMITED_INFORMATION = 0x0800
+	THREAD_SET_CONTEXT               = 0x0010
+	THREAD_SET_INFORMATION           = 0x0020
+	THREAD_SET_LIMITED_INFORMATION   = 0x0400
+	THREAD_SET_THREAD_TOKEN          = 0x0080
+	THREAD_SUSPEND_RESUME            = 0x0002
+	THREAD_TERMINATE                 = 0x0001
+)
+                
+
+
+// Access rights for process.
 const (
     ACCESS                      = windows.PROCESS_SET_INFORMATION
     PROCESS_ALL_ACCESS          = windows.STANDARD_RIGHTS_REQUIRED | windows.SYNCHRONIZE | 0xFFFF
@@ -49,6 +68,7 @@ var (
 	kernel32               = syscall.NewLazyDLL("kernel32.dll")
 	procEnumProcessThreads = kernel32.NewProc("EnumProcessThreads")
 	procSuspendThread      = kernel32.NewProc("SuspendThread")
+	procResumeThread       = kernel32.NewProc("ResumeThread")
 	procCloseHandle        = kernel32.NewProc("CloseHandle")
 	procVirtualProtectEx   = kernel32.NewProc("VirtualProtectEx")
 )
@@ -58,6 +78,7 @@ var (
     procGetExtendedTcpTable = iphlpapi.NewProc("GetExtendedTcpTable")
 )
 
+const INVALID_HANDLE_VALUE = ^uintptr(0)
 
 const (
     IDLE_PRIORITY_CLASS           = 0x00000040
@@ -67,6 +88,7 @@ const (
     HIGH_PRIORITY_CLASS           = 0x00000080
     REALTIME_PRIORITY_CLASS       = 0x00000100
 )
+
 
 const (
     PAGE_EXECUTE_READWRITE = 0x40
@@ -322,26 +344,32 @@ func TerminateProcess(proc string) (string, error) {
 		}
 
 		output += fmt.Sprintf("Process terminated successfully: %s\n", string(processOutput))
-		return output, nil
 	}
+	
+	if output == "" {
+        return "No kill function did not run ruccessfully", nil
+    }
 
-	return "", nil
+	return output, nil
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to set the priority of a process
 func SetProcessPriority(proc string, priority uint32) (string, error) {
+	var output string
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
         return "error finding process: ", err
     }
     
     for _, hpid := range pids {
+		output += fmt.Sprintf("Setting process priority to Pprocess: %s...\n", proc)
         pid := uint32(hpid)		
         handle, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, pid)
         if err != nil {
-            return "error opening process: ", err
+            output += fmt.Sprintf("Error terminating process: %s\n", err)
+            return output, err
         }
         defer windows.CloseHandle(handle)
     
@@ -349,33 +377,36 @@ func SetProcessPriority(proc string, priority uint32) (string, error) {
         if err != nil {
             return "error setting priority class: ", err
         } 
-        message := "Priority setted correctly"
-        return message, nil
+        output += fmt.Sprintf("Priority setted successfully for %s\n", proc)
     }
-	return "", nil
+	return output, nil
 }
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //suspend te thread of the process
-func SuspendProcess(proc string) (string, error){
+func SuspendProcess(proc string) (uint32, error){
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return "", err
+        return uint32(0), err
     }
     
     for _, pid := range pids {
-        hProcess, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
-        if err != nil {
-            return "", err
-        }
-        defer windows.CloseHandle(hProcess)
-        // Suspend the process here (uncomment if needed)
-        //  _, err = windows.SuspendThread(hProcess)
-        return "Process suspended successfully", nil
+        
+        hpid := uint32(pid)
+	    handle, err := windows.OpenThread(THREAD_SUSPEND_RESUME, false, hpid)
+		if handle == 0 {
+			return 0, err
+		}
+		retVal, _, err := procSuspendThread.Call(uintptr(handle))
+		if retVal == INVALID_HANDLE_VALUE {
+			return 0, err
+		}
+		return uint32(retVal), nil
     }
-	return "", nil
+	return uint32(0), nil
+
 }
 
 
@@ -548,7 +579,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Error:", err)
 				lastOutput = "<p style='color:red;'>Error: " + err.Error() + "</p>" // Display the error message
 			} else {
-				lastOutput = "<p><strong>Output:</strong> Retrieved active connections:<br />" + result + "</p>"
+				lastOutput = "<p><strong></strong> Retrieved active connections:<br />" + result + "</p>"
 			}
 		
             
@@ -559,7 +590,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 				lastOutput = "<p style='color:red;'>Error: " + err.Error() + "</p>" // Display the error message
 				renderForm(w)
 			}
-			lastOutput = "<p><strong>Output:</strong> Retrieved active PROCESSES:<br />" + output + "</p>"
+			lastOutput = "<p><strong></strong> Retrieved active PROCESSES:<br />" + output + "</p>"
 
 			
         
@@ -572,7 +603,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			}
 		
 		
-			lastOutput = "<p><strong>Output:</strong> Listed all processes:</p><ul>"
+			lastOutput = "<p><strong></strong> Listed all processes:</p><ul>"
 			for _, proc := range conn {
 				lastOutput += "<li>" + proc + "</li>"
 			}
@@ -589,7 +620,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
 			} else {
-				lastOutput = fmt.Sprintf("<p><strong>Output:</strong><br />%s</p>", result) 
+				lastOutput = fmt.Sprintf("<p><strong></strong><br />%s</p>", result) 
 			}
 		
 		
@@ -645,7 +676,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
             TerminateProcess(args[0])
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Process %s terminated</p>", args[0])
+            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s terminated</p>", args[0])
 
         case "set-priority":
             if len(args) < 2 {
@@ -678,7 +709,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Process %s priority set to %s</p>", processName, priorityStr)
+            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s priority set to %s</p>", processName, priorityStr)
 
         case "suspend":
             if len(args) < 1 {
@@ -686,8 +717,11 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
-            SuspendProcess(args[0])
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Process %s suspended</p>", args[0])
+            type, err := SuspendProcess(args[0])
+            if err != nil {
+                lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
+            }
+            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s suspended</p>", args[0])
 
         case "resume":
             if len(args) < 1 {
@@ -696,7 +730,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
             ResumeProcess(args[0])
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Process %s resumed</p>", args[0])
+            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s resumed</p>", args[0])
 
         case "read-memory":
             if len(args) < 3 {
@@ -718,7 +752,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
             ReadMemory(processName, uintptr(address), size)
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Read memory from process %s</p>", processName)
+            lastOutput = fmt.Sprintf("<p><strong></strong> Read memory from process %s</p>", processName)
 
         case "write-memory":
             if len(args) < 3 {
@@ -735,7 +769,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
             }
             data := args[2]
             WriteMemory(processName, int(address), data)
-            lastOutput = fmt.Sprintf("<p><strong>Output:</strong> Wrote memory to process %s</p>", processName)
+            lastOutput = fmt.Sprintf("<p><strong></strong> Wrote memory to process %s</p>", processName)
 
 		default:
 			lastOutput = fmt.Sprintf("<p style='color:red;'>Error: Unknown command %s</p>", command)
