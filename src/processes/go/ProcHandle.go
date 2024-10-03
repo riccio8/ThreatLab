@@ -776,7 +776,6 @@ case "read-memory":
 		return
 	}
 
-	// Chiama la funzione WriteMemory
 	ReadMemory(processName, uintptr(address), sizeStr)
 		
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -797,8 +796,6 @@ case "write-memory":
 		fmt.Println("\033[31mError parsing address:\033[0m", err)
 		return
 	}
-
-	// Chiama la funzione WriteMemory
 	WriteMemory(processName, int(address), data)
 
 		
