@@ -386,27 +386,36 @@ func SetProcessPriority(proc string, priority uint32) (string, error) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //suspend te thread of the process
-func SuspendProcess(proc string) (uint32, error){
-    pids, err := FindPidByNamePowerShell(proc)
+func SuspendProcess(proc string) (uint32, error) {
+    pids, err := FindPidByNamePowerShell(proc) 
     if err != nil {
-        return uint32(0), err
+        return 0, err
     }
-    
-    for _, pid := range pids {
-        
-        hpid := uint32(pid)
-	    handle, err := windows.OpenThread(THREAD_SUSPEND_RESUME, false, hpid)
-		if handle == 0 {
-			return 0, err
-		}
-		retVal, _, err := procSuspendThread.Call(uintptr(handle))
-		if retVal == INVALID_HANDLE_VALUE {
-			return 0, err
-		}
-		return uint32(retVal), nil
-    }
-	return uint32(0), nil
 
+    for _, pid := range pids {
+        hpid := uint32(pid)
+        handle, err := windows.OpenThread(THREAD_SUSPEND_RESUME, false, hpid)
+        if err != nil {
+            continue
+            // Try the next PID if one fails
+        }
+
+        retVal, _, err := procSuspendThread.Call(uintptr(handle))
+        if err != nil {
+            windows.CloseHandle(handle) // Close handle upon error
+            continue // Try the next PID
+        }
+
+        if retVal == 0xFFFFFFFF { // Check for failure
+            windows.CloseHandle(handle) // Ensure we clean up
+            continue // Try the next PID
+        }
+
+        windows.CloseHandle(handle) // Close handle after suspension
+        return uint32(retVal), nil
+    }
+
+    return 0, nil // None suspended
 }
 
 
@@ -421,25 +430,35 @@ func closeHandle(handle syscall.Handle) {
 
 // Function to resume a suspended process
 func ResumeProcess(proc string) (string, error){
-    pids, err := FindPidByNamePowerShell(proc)
+    pids, err := FindPidByNamePowerShell(proc) 
     if err != nil {
-        return "", err
+        return 0, err
     }
-    
-    for _, pid := range pids {
-        hProcess, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
-        if err != nil {
-            return "", err
-        }
-        defer windows.CloseHandle(hProcess)
 
-        _, err = windows.ResumeThread(hProcess)
+    for _, pid := range pids {
+        hpid := uint32(pid)
+        handle, err := windows.OpenThread(THREAD_SUSPEND_RESUME, false, hpid)
         if err != nil {
-            return "", nil    
+            continue
+            // Try the next PID if one fails
         }
-        return "Process resumed successfully", nil    
+
+        retVal, _, err := procSuspendThread.Call(uintptr(handle))
+        if err != nil {
+            windows.CloseHandle(handle) // Close handle upon error
+            continue // Try the next PID
+        }
+
+        if retVal == 0xFFFFFFFF { // Check for failure
+            windows.CloseHandle(handle) // Ensure we clean up
+            continue // Try the next PID
+        }
+
+        windows.CloseHandle(handle) // Close handle after suspension
+        return uint32(retVal), nil
     }
-    return "", nil    
+
+    return 0, nil // None suspended
 }
 
 
@@ -717,11 +736,11 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
-            type, err := SuspendProcess(args[0])
+            _, err := SuspendProcess(args[0])
             if err != nil {
                 lastOutput = fmt.Sprintf("<p style='color:red;'>Error: %v</p>", err)
             }
-            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s suspended</p>", args[0])
+            lastOutput = fmt.Sprintf("<p><strong></strong> Process %s suspended </p>", args[0])
 
         case "resume":
             if len(args) < 1 {
