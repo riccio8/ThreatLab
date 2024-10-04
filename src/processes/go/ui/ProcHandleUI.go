@@ -386,10 +386,10 @@ func SetProcessPriority(proc string, priority uint32) (string, error) {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //suspend te thread of the process
-func SuspendProcess(proc string) (uint32, error) {
+func SuspendProcess(proc string) (string, error) {
     pids, err := FindPidByNamePowerShell(proc) 
     if err != nil {
-        return 0, err
+        return "error finding process: ", err
     }
 
     for _, pid := range pids {
@@ -412,10 +412,10 @@ func SuspendProcess(proc string) (uint32, error) {
         }
 
         windows.CloseHandle(handle) // Close handle after suspension
-        return uint32(retVal), nil
+        return string(retVal), nil
     }
 
-    return 0, nil // None suspended
+    return "", nil // None suspended
 }
 
 
@@ -432,7 +432,7 @@ func closeHandle(handle syscall.Handle) {
 func ResumeProcess(proc string) (string, error){
     pids, err := FindPidByNamePowerShell(proc) 
     if err != nil {
-        return 0, err
+        return "error finding process: ", err
     }
 
     for _, pid := range pids {
@@ -455,10 +455,10 @@ func ResumeProcess(proc string) (string, error){
         }
 
         windows.CloseHandle(handle) // Close handle after suspension
-        return uint32(retVal), nil
+        return string(retVal), nil
     }
 
-    return 0, nil // None suspended
+    return "", nil // None suspended
 }
 
 
