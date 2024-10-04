@@ -466,28 +466,38 @@ func ResumeProcess(proc string) (string, error){
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to read memory from a specific process
-func ReadMemory(proc string, address uintptr, size int) (string, error){
+func ReadMemory(proc string, address uintptr, size int) ([]string, error) {
+    var output []string
+    output = append(output, "Listing all processes...")
+
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return "", err
+        return output, fmt.Errorf("failed to find PIDs: %w", err)
     }
 
     for _, pid := range pids {
         hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
         if err != nil {
+            output = append(output, fmt.Sprintf("failed to open process with PID %d: %v", pid, err))
             continue
         }
+
+        // Close the process handle properly 
         defer windows.CloseHandle(hProcess)
 
         dataBytes := make([]byte, size)
-
+        
         err = windows.ReadProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), nil)
         if err != nil {
-            return "", err
+            output = append(output, fmt.Sprintf("failed to read memory from PID %d: %v", pid, err))
+            continue
         }
-        return string(dataBytes), nil
+
+        // Add the read data to output in a readable format (for example, as a hex string)
+        output = append(output, fmt.Sprintf("Read memory from PID %d: %x", pid, dataBytes))
     }
-    return "", nil
+
+    return output, nil
 }
 
 
@@ -770,8 +780,16 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
-            ReadMemory(processName, uintptr(address), size)
-            lastOutput = fmt.Sprintf("<p><strong></strong> Read memory from process %s</p>", processName)
+            data, err := ReadMemory(processName, uintptr(address), size)
+            if err != nil {
+                lastOutput = fmt.Sprintf("<p style='color:red;'>Error Calling function: %v</p>", err)
+                renderForm(w)
+                return
+            }
+            for _, single_data := range data{
+                lastOutput = fmt.Sprintf("<p><strong></strong> Read memory from process %s, data: %s</p>", processName, single_data)
+            }
+            
 
         case "write-memory":
             if len(args) < 3 {
@@ -886,9 +904,6 @@ func renderForm(w http.ResponseWriter) {
 	    </div>
 	</body>
 	</html>
-
-
-
     `
 	tmplParsed, err := template.New("form").Parse(tmpl)
 	if err != nil {
