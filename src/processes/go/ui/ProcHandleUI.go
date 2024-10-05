@@ -450,7 +450,7 @@ func ResumeProcess(proc string) (string, error){
         }
 
         if retVal == 0xFFFFFFFF { // Check for failure
-            windows.CloseHandle(handle) // Ensure we clean up
+            windows.CloseHandle(handle) 
             continue // Try the next PID
         }
 
@@ -476,58 +476,71 @@ func ReadMemory(proc string, address uintptr, size int) ([]string, error) {
     }
 
     for _, pid := range pids {
-        hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+        hProcess, err := windows.OpenProcess(windows.PROCESS_VM_READ|windows.PROCESS_QUERY_INFORMATION, false, uint32(pid))
         if err != nil {
             output = append(output, fmt.Sprintf("failed to open process with PID %d: %v", pid, err))
             continue
         }
 
-        // Close the process handle properly 
         defer windows.CloseHandle(hProcess)
 
         dataBytes := make([]byte, size)
-        
-        err = windows.ReadProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), nil)
+        var bytesRead uintptr
+
+        // Try to read the process memory
+        err = windows.ReadProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), &bytesRead)
         if err != nil {
             output = append(output, fmt.Sprintf("failed to read memory from PID %d: %v", pid, err))
             continue
         }
 
+        if bytesRead != uintptr(size) {
+            output = append(output, fmt.Sprintf("only part of memory read from PID %d: requested %d bytes, got %d bytes", pid, size, bytesRead))
+        }
+
         // Add the read data to output in a readable format (for example, as a hex string)
-        output = append(output, fmt.Sprintf("Read memory from PID %d: %x", pid, dataBytes))
+        output = append(output, fmt.Sprintf("Read memory from PID %d: %x", pid, dataBytes[:bytesRead]))
     }
 
     return output, nil
 }
 
 
-
-
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Function to write data to a specific memory address of a process
-func WriteMemory(proc string, address int, data string) (string, error){
+func WriteMemory(proc string, address uintptr, data string) (string, error) {
     pids, err := FindPidByNamePowerShell(proc)
     if err != nil {
-        return "", err
+        return "", fmt.Errorf("failed to find PIDs: %w", err)
     }
 
+    if len(pids) == 0 {
+        return "", fmt.Errorf("no process found with name %s", proc)
+    }
+
+    dataBytes := []byte(data)
+
     for _, pid := range pids {
-        hProcess, err := windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+        hProcess, err := windows.OpenProcess(windows.PROCESS_VM_WRITE|windows.PROCESS_VM_OPERATION|windows.PROCESS_QUERY_INFORMATION, false, uint32(pid))
         if err != nil {
             continue 
         }
+
         defer windows.CloseHandle(hProcess)
 
-        dataBytes := []byte(data)
 
-        err = windows.WriteProcessMemory(hProcess, uintptr(address), &dataBytes[0], uintptr(len(dataBytes)), nil)
+        err = windows.WriteProcessMemory(hProcess, address, &dataBytes[0], uintptr(len(dataBytes)), nil)
         if err != nil {
-            return "", err
+
+            return "", fmt.Errorf("failed to write memory to PID %d: %w", pid, err)
         }
+
+        windows.CloseHandle(hProcess) 
         return string(dataBytes), nil
     }
-    return "", nil
+
+    return "", fmt.Errorf("failed to write memory to any process with name %s", proc)
 }
 
 
@@ -805,8 +818,9 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
             data := args[2]
-            datas, err := WriteMemory(processName, int(address), data)
-            lastOutput = fmt.Sprintf("<p><strong></strong> Wrote memory to process %s wrote that bytes %s</p>", processName, string(datas))
+            datas, err := WriteMemory(processName, uintptr(address), data)
+            fmt.Print(datas)
+            lastOutput = fmt.Sprintf("<p><strong></strong> Wrote memory to process %s wrote that bytes %s</p>", processName, datas)
 
 		default:
 			lastOutput = fmt.Sprintf("<p style='color:red;'>Error: Unknown command %s</p>", command)
