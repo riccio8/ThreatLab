@@ -579,7 +579,7 @@ func DisplayHelp() {
 	fmt.Println("  cpnnection          \033[37mRetrievs a list of all current connection.")
 	fmt.Println("  resume <proc_name>           \033[37mResume a suspended process by its PID.")
 	fmt.Println("  read-memory <process_name> <address> <size> \033[37mRead memory at a specific address of a process.")
-	fmt.Println("  write-memory <process_name><address> <data> \033[37mWrite data to a specific memory address of a process.")
+	fmt.Println("  write-memory <process_name> <address> <data> \033[37mWrite data to a specific memory address of a process.")
 	fmt.Println("  protect <process_name> <lpAddress> <dwSize> <flNewProtect> \033[37mChange the type of permits of a specific memory region which belongs to the process given by name.")
 	
 }
@@ -805,8 +805,8 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
             data := args[2]
-            WriteMemory(processName, int(address), data)
-            lastOutput = fmt.Sprintf("<p><strong></strong> Wrote memory to process %s</p>", processName)
+            datas, err := WriteMemory(processName, int(address), data)
+            lastOutput = fmt.Sprintf("<p><strong></strong> Wrote memory to process %s wrote that bytes %s</p>", processName, string(datas))
 
 		default:
 			lastOutput = fmt.Sprintf("<p style='color:red;'>Error: Unknown command %s</p>", command)
