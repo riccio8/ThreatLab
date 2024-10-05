@@ -6,6 +6,11 @@ import (
 	"unsafe"
 )
 
+
+// IMPORT REOURCES: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_limit_violation_information
+//                  https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createjobobjecta
+
+
 var (
 	kernel32                  = syscall.NewLazyDLL("Kernel32.dll")
 	CreateJobObjectA          = kernel32.NewProc("CreateJobObjectA")
