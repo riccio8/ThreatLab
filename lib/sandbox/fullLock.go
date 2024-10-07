@@ -94,7 +94,7 @@ type Path string
 var exePathGlobal Path
 
 // SetFilePath sets the executable path
-func SetFilePath(exePath Path) error {
+func SetFilePath(exePath string) error {
 	exePathGlobal = Path(exePath)
 	return nil
 }
@@ -270,7 +270,6 @@ func Help() {
 func main() {
 	return
 }
-
 
 
 // compile using ```go build -o fullblock.dll -buildmode=c-shared .\FullBloccking.go```
