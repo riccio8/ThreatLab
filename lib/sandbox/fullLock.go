@@ -181,7 +181,7 @@ func CreateSandboxJob() (syscall.Handle, error) {
 }
 
 
-func registerProvider() error {
+func RegisterProvider() error {
 	r, _, err := procEventRegister.Call(
 		uintptr(unsafe.Pointer(&providerGUID)),
 		0, 0,
@@ -193,7 +193,7 @@ func registerProvider() error {
 	return nil
 }
 
-func unregisterProvider() error {
+func UnregisterProvider() error {
 	r, _, err := procEventUnregister.Call(providerHandle)
 	if r != 0 {
 		return err
@@ -202,7 +202,7 @@ func unregisterProvider() error {
 }
 
 
-func writeEvent(eventDescriptor *EVENT_DESCRIPTOR, message string) error {
+func WriteEvent(eventDescriptor *EVENT_DESCRIPTOR, message string) error {
 	utf16Message, err := syscall.UTF16PtrFromString(message)
 	if err != nil {
 		return err
