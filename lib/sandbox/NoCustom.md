@@ -9,9 +9,9 @@ The `fullblock.dll` provides functions for managing Windows job objects and logg
 1. **SetFilePath**: Sets the path to the executable to run.
 2. **CreateSandboxJob**: Creates a job object with specific resource limits.
 3. **StartExeInJob**: Starts the executable in the created job object (so before use the ```CreateSandboxJob``` function).
-4. **registerProvider**: Registers an ETW provider.
-5. **unregisterProvider**: Unregisters the ETW provider.
-6. **writeEvent**: Writes an event to the ETW provider.
+4. **RegisterProvider**: Registers an ETW provider.
+5. **UnregisterProvider**: Unregisters the ETW provider.
+6. **WriteEvent**: Writes an event to the ETW provider.
 
 ### Function Documentation
 
@@ -84,7 +84,7 @@ StartExeInJobFunc StartExeInJob = (StartExeInJobFunc)GetProcAddress(hInstLibrary
 int result = StartExeInJob(jobHandle);
 ```
 
-#### 4. `registerProvider() error`
+#### 4. `RegisterProvider() error`
 
 - **Description**: Registers the ETW provider.
 - **Returns**: 
@@ -92,7 +92,7 @@ int result = StartExeInJob(jobHandle);
 
 **Go Usage Example**:
 ```go
-err := registerProvider()
+err := RegisterProvider()
 if err != nil {
     // Handle error
 }
@@ -101,11 +101,11 @@ if err != nil {
 **C++ Usage Snippet**:
 ```cpp
 typedef int (*RegisterProviderFunc)();
-RegisterProviderFunc registerProvider = (RegisterProviderFunc)GetProcAddress(hInstLibrary, "registerProvider");
+RegisterProviderFunc RegisterProvider = (RegisterProviderFunc)GetProcAddress(hInstLibrary, "RegisterProvider");
 int result = registerProvider();
 ```
 
-#### 5. `unregisterProvider() error`
+#### 5. `UnregisterProvider() error`
 
 - **Description**: Unregisters the ETW provider.
 - **Returns**: 
@@ -113,7 +113,7 @@ int result = registerProvider();
 
 **Go Usage Example**:
 ```go
-err := unregisterProvider()
+err := UnregisterProvider()
 if err != nil {
     // Handle error
 }
@@ -122,11 +122,11 @@ if err != nil {
 **C++ Usage Snippet**:
 ```cpp
 typedef int (*UnregisterProviderFunc)();
-UnregisterProviderFunc unregisterProvider = (UnregisterProviderFunc)GetProcAddress(hInstLibrary, "unregisterProvider");
+UnregisterProviderFunc UnregisterProvider = (UnregisterProviderFunc)GetProcAddress(hInstLibrary, "unregisterProvider");
 int result = unregisterProvider();
 ```
 
-#### 6. `writeEvent(eventDescriptor *EVENT_DESCRIPTOR, message string) error`
+#### 6. `WriteEvent(eventDescriptor *EVENT_DESCRIPTOR, message string) error`
 
 - **Description**: Writes an event to the ETW provider.
 - **Parameters**: 
@@ -138,7 +138,7 @@ int result = unregisterProvider();
 **Go Usage Example**:
 ```go
 eventDesc := &EVENT_DESCRIPTOR{Id: 1, Level: 2}
-err = writeEvent(eventDesc, "Event message")
+err = WriteEvent(eventDesc, "Event message")
 if err != nil {
     // Handle error
 }
@@ -147,7 +147,7 @@ if err != nil {
 **C++ Usage Snippet**:
 ```cpp
 typedef int (*WriteEventFunc)(EVENT_DESCRIPTOR*, const wchar_t*);
-WriteEventFunc writeEvent = (WriteEventFunc)GetProcAddress(hInstLibrary, "writeEvent");
+WriteEventFunc WriteEvent = (WriteEventFunc)GetProcAddress(hInstLibrary, "writeEvent");
 EVENT_DESCRIPTOR eventDesc = {1, 2, 0, 0, 0, 0, 0}; // Set appropriate values
 int result = writeEvent(&eventDesc, L"Event message");
 ```
@@ -168,3 +168,5 @@ int result = writeEvent(&eventDesc, L"Event message");
 		JOB_OBJECT_LIMIT_BREAKAWAY_OK 
 		JOB_OBJECT_LIMIT_DIE_ON_UNHANDLED_EXCEPTION 
 		JOB_OBJECT_LIMIT_PROCESS_MEMORY
+
+### There's also a func named **Help** that prints a sample of usage, u can store the result of the function into a variable and then print it or call directly the funtion
