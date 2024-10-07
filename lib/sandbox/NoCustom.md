@@ -19,7 +19,7 @@ The `fullblock.dll` provides functions for managing Windows job objects and logg
 
 - **Description**: Sets the global executable path for the process.
 - **Parameters**: 
-  - `exePath (Path)`: The path of the executable.
+  - `exePath (string)`: The path of the executable, u pass the string it will be converte din the local type path.
 - **Returns**: 
   - `error`: An error if setting the path fails.
 
