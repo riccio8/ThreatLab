@@ -94,7 +94,7 @@ type Path string
 var exePathGlobal Path
 
 // SetFilePath sets the executable path
-func SetFilePath(exePath string) error {
+func SetFilePath(exePath Path) error {
 	exePathGlobal = Path(exePath)
 	return nil
 }
@@ -224,48 +224,48 @@ func WriteEvent(eventDescriptor *EVENT_DESCRIPTOR, message string) error {
 // Help function to demonstrate the usage of SetFilePath, CreateSandboxJob, and StartExeInJob
 func Help() {
 	fmt.Println("=== Help Function Demonstration ===")
-	fmt.Println("This example will show how to set the executable path, create a sandbox job, and run the executable within the sandbox.\n")
+	fmt.Println("This script demonstrates how to create a sandbox environment for running an executable in a controlled manner.\n")
+	
+	fmt.Println("Below are the steps to use the main functions available in this script:")
 
 	// Step 1: Set the executable path
-	fmt.Println("Step 1: Setting the executable path")
+	fmt.Println("\nStep 1: Set the Executable Path")
+	fmt.Println("Use the SetFilePath function to specify the path to your executable.")
 	fmt.Println("Code: err := SetFilePath(\"C:\\Path\\To\\YourExecutable.exe\")")
+	fmt.Println("This sets the path of the executable to be used later by StartExeInJob.")
 	err := SetFilePath("C:\\Path\\To\\YourExecutable.exe")
-	if err != nil {
-		fmt.Printf("Error setting executable path: %v\n", err)
-		return
-	}
+	fmt.Printf("Error setting executable path: %v\n", err)
+
 	fmt.Println("Executable path set successfully.\n")
 
-	// Step 2: Create a job object
-	fmt.Println("Step 2: Creating a sandbox job object")
+	// Step 2: Create a Job Object
+	fmt.Println("Step 2: Create a Sandbox Job Object")
+	fmt.Println("Use the CreateSandboxJob function to create a job object with specific security limits.")
 	fmt.Println("Code: jobHandle, err := CreateSandboxJob()")
 	jobHandle, err := CreateSandboxJob()
-	if err != nil {
-		fmt.Printf("Error creating job object: %v\n", err)
-		return
-	}
-	fmt.Println("Sandbox job object created successfully.")
+	fmt.Printf("Error creating job object: %v\n", err)
+	fmt.Println("Sandbox job object created successfully.\n")
 
 	// Ensure the job handle is properly closed when no longer needed
 	defer func() {
-		fmt.Println("\nClosing the job handle")
+		fmt.Println("\nClosing the job handle.")
 		fmt.Println("Code: CloseHandle.Call(uintptr(jobHandle))")
 		CloseHandle.Call(uintptr(jobHandle))
 		fmt.Println("Job handle closed.")
 	}()
 
-	// Step 3: Start the executable process in the job object
-	fmt.Println("\nStep 3: Starting the process in the sandbox job")
+	// Step 3: Start the Executable Process in the Job Object
+	fmt.Println("Step 3: Start the Executable in the Sandbox Job")
+	fmt.Println("Use the StartExeInJob function to start the process in the created job object.")
 	fmt.Println("Code: err = StartExeInJob(jobHandle)")
 	err = StartExeInJob(jobHandle)
-	if err != nil {
-		fmt.Printf("Error starting process in job object: %v\n", err)
-		return
-	}
+	fmt.Printf("Error starting process in job object: %v\n", err)
+	
 	fmt.Println("Process successfully started in the sandbox.\n")
 
 	fmt.Println("=== End of Help Demonstration ===")
 }
+
 
 func main() {
 	return
