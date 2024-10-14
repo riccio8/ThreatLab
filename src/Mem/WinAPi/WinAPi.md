@@ -84,7 +84,6 @@ These APIs allow executing commands and interacting with the Windows shell.
 - **CreateProcessWithLogonW** – Executes a process with specific credentials.
 - **SystemParametersInfo** – Retrieves or sets system information.
 
-## Final Considerations
 
 ### 1. Module, Library, and Driver Management APIs
 
