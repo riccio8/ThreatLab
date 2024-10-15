@@ -164,3 +164,6 @@ These APIs allow interacting with hardware devices, like the keyboard and mouse.
 - **MapVirtualKey** – Converts a virtual key code to a scan code and vice versa.
 - **RegisterHotKey** – Registers a key combination as a system-wide hotkey.
 - **UnregisterHotKey** – Deregisters a system-wide hotkey.
+
+# MORE IN THIS PDF:
+[winapi_hack en.pdf](https://github.com/user-attachments/files/17379229/winapi_hack.en.pdf)
