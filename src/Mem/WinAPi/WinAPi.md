@@ -1,4 +1,4 @@
-# THIS FILE CONTAINS A LOT OF WIN APIS THAT HACKERS COULD USE FOR CONTROL THE DEVICE (almost for reverse engeeniring):
+# THIS FILE CONTAINS A LOT OF INTRESTING WIN APIS THAT COULD USE FOR CONTROL THE DEVICE (almost for reverse engeeniring):
 
 ## 1. File and Process Manipulation APIs
 
