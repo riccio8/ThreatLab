@@ -165,5 +165,51 @@ These APIs allow interacting with hardware devices, like the keyboard and mouse.
 - **RegisterHotKey** – Registers a key combination as a system-wide hotkey.
 - **UnregisterHotKey** – Deregisters a system-wide hotkey.
 
-# MORE IN THIS PDF:
+
+# MORE ABOUT IMAGE LIKE PE OR DLL:
+
+  ## Image Access
+  
+  The image access functions access the data in an executable image. The functions provide high-level access to the base of images and very specific access to the most common parts of an image's data.
+  
+  - **GetImageConfigInformation**
+  - **GetImageUnusedHeaderBytes**
+  - **ImageLoad**
+  - **ImageUnload**
+  - **MapAndLoad**
+  - **SetImageConfigInformation**
+  - ** UnMapAndLoad**
+  
+  ## Image Integrity
+  
+  The image integrity functions manage the set of certificates in an image file.
+  
+  - **DigestFunction**
+  - **ImageAddCertificate**
+  - **ImageEnumerateCertificates**
+  - **ImageGetCertificateData**
+  - **ImageGetCertificateHeader**
+  - **ImageGetDigestStream**
+  - **ImageRemoveCertificate**
+  
+  ## Image Modification
+  
+  The image modification functions allow you to change the executable image.
+  
+  - **BindImage**
+  - **BindImageEx**
+  - **CheckSumMappedFile**
+  - **MapFileAndCheckSum**
+  - **ReBaseImage**
+  - **ReBaseImage64**
+  - **SplitSymbols**
+  - **StatusRoutine**
+  - **TouchFileTimes**
+  - **UpdateDebugInfoFile**
+  - **UpdateDebugInfoFileEx**
+
+    ### SOURCE:
+    [imagehlp.h](https://learn.microsoft.com/en-us/windows/win32/debug/imagehlp-functions)
+
+# MAYBE THERE'S MORE IN THIS PDF:
 [winapi_hack en.pdf](https://github.com/user-attachments/files/17379229/winapi_hack.en.pdf)
