@@ -6,8 +6,6 @@
 
 #pragma comment(lib, "ws2_32.lib")  // Required for linking with Ws2_32.lib
 
-// #define SERVER "localhost"  
-// #define BUFFER_SIZE 1024  
 #define PORT 8080
 #define SOCK_STREAM 1
 #define AF_INET 2
