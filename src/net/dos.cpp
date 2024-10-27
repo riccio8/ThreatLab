@@ -7,6 +7,7 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 
 #define PORT 8080
 #define WIN32_LEAN_AND_MEAN
@@ -30,58 +31,57 @@ int main() {
         std::cout << "The Winsock 2.2 dll was found okay" << std::endl;
     }
 
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (sock == INVALID_SOCKET) {
-        std::cerr << "Socket function failed with error: " << WSAGetLastError() << std::endl;
-        WSACleanup();
-        return 1;
-    } else {
-        std::cout << "Socket function succeeded" << std::endl;
-    }
-    
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(80); // Port 80 
-    inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr); 
-    
-    
-    int connectResult = connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr));
-    if (connectResult == SOCKET_ERROR) {
-        std::cerr << "Error during connection: " << WSAGetLastError() << std::endl;
-        std::cerr << GetLastError() << std::endl;
-        closesocket(sock);
-        WSACleanup();
-        return 1;
-    }else{
-        std::cout << "Connected" << std::endl;
-    }
-    
-    const char* message = "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF";  
-    int sendResult = send(sock, message, strlen(message), 0);
-    if (sendResult == SOCKET_ERROR) {
-        std::cerr << "Error sending data: \n" << WSAGetLastError() << std::endl;
-        closesocket(sock);
-        WSACleanup();
-        return 1;
-    }else{
-        std::cout << "Data sent successfully" << std::endl;
-    }
+    while (true) {
+        SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (sock == INVALID_SOCKET) {
+            std::cerr << "Socket function failed with error: " << WSAGetLastError() << std::endl;
+            WSACleanup();
+            return 1;
+        } else {
+            std::cout << "Socket function succeeded" << std::endl;
+        }
 
+        sockaddr_in serverAddr;
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_port = htons(80); // Port 80
+        inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr);
 
-    
-    // Shutting down connection and closing socket
-    int iResult = shutdown(sock, SD_SEND);
-    if (iResult == SOCKET_ERROR) {
-        std::cerr << "Shutdown failed with error: " << WSAGetLastError() << std::endl;
+        int connectResult = connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr));
+        if (connectResult == SOCKET_ERROR) {
+            std::cerr << "Error during connection: " << WSAGetLastError() << std::endl;
+            closesocket(sock);
+            WSACleanup();
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait before retrying
+            continue;
+        } else {
+            std::cout << "Connected" << std::endl;
+        }
+
+        const char* message = "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF";
+        int sendResult = send(sock, message, strlen(message), 0);
+        if (sendResult == SOCKET_ERROR) {
+            std::cerr << "Error sending data: " << WSAGetLastError() << std::endl;
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        } else {
+            std::cout << "Data sent successfully" << std::endl;
+        }
+
+        int iResult = shutdown(sock, SD_SEND);
+        if (iResult == SOCKET_ERROR) {
+            std::cerr << "Shutdown failed with error: " << WSAGetLastError() << std::endl;
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        } else {
+            std::cout << "Shutdown completed" << std::endl;
+        }
+
         closesocket(sock);
-        WSACleanup();
-        return 1;
-    } else {
-        std::cout << "No shutdown requested" << std::endl;
-    }
+        std::cout << "Socket closed" << std::endl;
 
-    closesocket(sock);
-    std::cout << "Shutdown and closesocket function passed" << std::endl;
+    }
 
     WSACleanup();
     return 0;
