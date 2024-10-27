@@ -52,7 +52,21 @@ int main() {
         closesocket(sock);
         WSACleanup();
         return 1;
+    }else{
+        std::cout << "Connected" << std::endl;
     }
+    
+    const char* message = "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF";  
+    int sendResult = send(sock, message, strlen(message), 0);
+    if (sendResult == SOCKET_ERROR) {
+        std::cerr << "Error sending data: \n" << WSAGetLastError() << std::endl;
+        closesocket(sock);
+        WSACleanup();
+        return 1;
+    }else{
+        std::cout << "Data sent successfully" << std::endl;
+    }
+
 
     
     // Shutting down connection and closing socket
