@@ -53,4 +53,6 @@ int main()
     return 0;
 }
 
+/*  THIS IS JUST THE FIRST PART, THE INITIAL SETUP, I'LL ADD THREAD AND SO ON, JUST WAIT */
+
 // Compile using: g++ -Wall -o sock .\dos.cpp -lws2_32
