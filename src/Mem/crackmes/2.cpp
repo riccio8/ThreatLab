@@ -1,4 +1,3 @@
-```cpp
 #include <iostream>
 #include <chrono>
 #include <windows.h>
@@ -46,4 +45,3 @@ int main(){
     std::cout << "result at" << std::Oct << &buffer << std::endl;
     return 0;
 }
-```
