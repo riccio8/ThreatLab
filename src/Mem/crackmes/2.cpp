@@ -5,43 +5,42 @@
 
 using namespace std;
 
-bool IsDebugge(){
+bool IsDebugge() {
     return IsDebuggerPresent();
 }
 
 void decrypt(int* buffer, int size, int key) {
     for (int i = 0; i < size; i++) {
-        buffer[i] ^= key;  // Decrypt with XOR
+        buffer[i] ^= key;
     }
 }
 
 void delay() {
-    std::this_thread::sleep_for(std::chrono::seconds(3));  // 3-second delay
+    std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
 int* ydobio() {
-
     if (IsDebugge()) {
         std::cout << "Debugger detected!" << std::endl;
-        exit(1);  // Terminate if debugging
+        exit(1);
     }
     delay();
     int* buffer = new int[7];
-    buffer[0] = 0x22 ^ 0x41; // Encrypted 'b'
-    buffer[1] = 0x35 ^ 0x41; // Encrypted 'v'
-    buffer[2] = 0x2d ^ 0x41; // Encrypted 'l'
-    buffer[3] = 0x2e ^ 0x41; // Encrypted 'n'
-    buffer[4] = 0x2d ^ 0x41; // Encrypted 'l'
-    buffer[5] = 0x2e ^ 0x41; // Encrypted 'n'
-    buffer[6] = 0x60 ^ 0x41; // Encrypted '!'
-    
-    decrypt(buffer, 7, 0x41); // XOR decryption
+    buffer[0] = 0x22 ^ 0x41;
+    buffer[1] = 0x35 ^ 0x41;
+    buffer[2] = 0x2d ^ 0x41;
+    buffer[3] = 0x2e ^ 0x41;
+    buffer[4] = 0x2d ^ 0x41;
+    buffer[5] = 0x2e ^ 0x41;
+    buffer[6] = 0x60 ^ 0x41;
+
+    decrypt(buffer, 7, 0x41);
     return buffer;
 }
 
-int main(){
+int main() {
     std::cout << "Find the hidden world" << std::endl;
     int* result = ydobio();
-    std::cout << "result at" << std::Oct << &buffer << std::endl;
+    std::cout << "result at memory address: " << std::oct << reinterpret_cast<uintptr_t>(result) << std::endl;
     return 0;
 }
