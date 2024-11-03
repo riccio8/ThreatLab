@@ -20,12 +20,13 @@ void delay() {
 }
 
 int* ydobio() {
+    static int buffer[7]; 
     if (IsDebugge()) {
         std::cout << "Debugger detected!" << std::endl;
         exit(1);
     }
     delay();
-    int* buffer = new int[7];
+
     buffer[0] = 0x22 ^ 0x41;
     buffer[1] = 0x35 ^ 0x41;
     buffer[2] = 0x2d ^ 0x41;
@@ -41,6 +42,7 @@ int* ydobio() {
 int main() {
     std::cout << "Find the hidden world" << std::endl;
     int* result = ydobio();
-    std::cout << "result at memory address: " << std::oct << reinterpret_cast<uintptr_t>(result) << std::endl;
+    std::cout << "maybe something cool at: " << std::oct << reinterpret_cast<uintptr_t>(result) << std::endl;
+    delay();
     return 0;
 }
