@@ -1,6 +1,6 @@
 ---
 
-### How to Keep Your Process Alive on Windows
+# How to Keep Your Process Alive on Windows
 
 If you want to keep other processes from killing your app, here are a few tricks that can help. Remember: if someone’s got admin rights, there’s no foolproof way to stop them. But these steps will make it a lot harder for unwanted processes to mess with yours.
 
