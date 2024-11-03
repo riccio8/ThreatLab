@@ -4,8 +4,6 @@
 
 If you want to keep other processes from killing your app, here are a few tricks that can help. Remember: if someone’s got admin rights, there’s no foolproof way to stop them. But these steps will make it a lot harder for unwanted processes to mess with yours.
 
----
-
 ### 1. Run as a System Service
 
 Make your app a Windows service, so only users with admin privileges can stop it. Set it up with "Automatic with restart" so if it ever goes down (or someone tries to kill it), Windows will just restart it automatically. This gives your app a lot more resilience than a typical process.
