@@ -28,4 +28,3 @@ Use Windows APIs like `CreateToolhelp32Snapshot` and `Process32First/Process32Ne
 
 Add a self-check timer inside your app. If it notices the app is going down (or something’s trying to shut it down), it can trigger an auto-restart. This gives your process some self-healing if someone tries to kill it off.
 
----
