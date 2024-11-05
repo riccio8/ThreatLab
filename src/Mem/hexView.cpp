@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <vector>
 #include <algorithm> 
 
 std::string trim_quotes(const std::string& path) {
@@ -14,7 +15,10 @@ std::string trim_quotes(const std::string& path) {
     return trimmed;
 }
 
+
 int main() {
+    std::vector<unsigned char> bytes;  // Declare a variable to store each byte read from the file.
+    
     std::string filepath; 
     std::cout << "Enter your file path: " << std::endl;
     std::getline(std::cin, filepath);
@@ -29,11 +33,17 @@ int main() {
         std::cout << "File opened successfully!" << std::endl;
 
     }
-    char byte;
-    while (file.get(byte)) {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << (static_cast<unsigned char>(byte) & 0xFF) << " ";
+    
+ unsigned char byte;
+    while (file.read(reinterpret_cast<char*>(&byte), sizeof(byte))) {
+        bytes.push_back(byte);
     }
 
-    file.close();
+    
+    std::cout << "Bytes read from file:" << std::endl;
+    for (unsigned char b : bytes) {
+        std::cout << std::hex << static_cast<int>(b) << " ";  
+    }
+
     return 0;
 }
