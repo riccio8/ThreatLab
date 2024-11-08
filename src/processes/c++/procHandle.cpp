@@ -145,6 +145,57 @@ void suspend(const std::string& name)
     CloseHandle(hThreadSnapshot);
 }
 
+
+
+
+void resume(const std::string& name)
+{
+
+    std::vector<DWORD> pids = FindPidByName(name);
+
+    if (pids.empty()) {
+        std::cout << "No processes found with name: " << name << std::endl;
+        return;
+    }
+
+    HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hThreadSnapshot == INVALID_HANDLE_VALUE) {
+        std::cout << "Error: Unable to create thread snapshot." << std::endl;
+        return;
+    }
+
+    THREADENTRY32 threadEntry;
+    threadEntry.dwSize = sizeof(THREADENTRY32);
+
+    if (Thread32First(hThreadSnapshot, &threadEntry)) {
+        do {
+            for (DWORD pid : pids) {
+                if (threadEntry.th32OwnerProcessID == pid) {
+                    HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, threadEntry.th32ThreadID);
+                    if (hThread != NULL) {
+                        DWORD suspendResult = ResumeThread(hThread);
+                        if (suspendResult == (DWORD)-1) {
+                            std::cout << "Error suspending thread with ID: " 
+                                      << threadEntry.th32ThreadID 
+                                      << " in process ID: " << pid << std::endl;
+                        } else {
+                            std::cout << "Successfully suspended thread with ID: " 
+                                      << threadEntry.th32ThreadID 
+                                      << " in process ID: " << pid << std::endl;
+                        }
+                        CloseHandle(hThread);
+                    } else {
+                        std::cout << "Failed to open thread with ID: " 
+                                  << threadEntry.th32ThreadID << std::endl;
+                    }
+                }
+            }
+        } while (Thread32Next(hThreadSnapshot, &threadEntry));
+    }
+
+    CloseHandle(hThreadSnapshot);
+}
+
 void TerminateProcessByName(const std::string& name) {
     std::vector<DWORD> pids = FindPidByName(name);
     for (const auto& pid : pids) {
@@ -187,7 +238,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         suspend(argv[2]);
-    } else {
+    }else if (command == "resume"){
+         if (argc < 3) {
+            std::cout << "Usage: resume <process name>" << std::endl;
+            return 1;
+        }
+        resume(argv[2]);
+    
+    }else {
         std::cout << "Error: Unknown command: " << command << std::endl;
         DisplayHelp();
     }
