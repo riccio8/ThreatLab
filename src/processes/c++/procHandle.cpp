@@ -11,8 +11,10 @@ void DisplayHelp() {
     std::cout << "Commands:" << std::endl;
     std::cout << "  list                    List all running processes on the system." << std::endl;
     std::cout << "  info <proc_name>       Retrieve detailed information for a specific process by its PID." << std::endl;
+
 }
 
+// This function use find the pid (process id) by it's name creating a tool that makes a snapshot of the processes
 std::vector<DWORD> FindPidByName(const std::string& processName) {
     std::vector<DWORD> pids;
     PROCESSENTRY32 pe32;
@@ -60,7 +62,8 @@ void ListInfoProcesses() {
     CloseHandle(snapshot);
 }
 
-void GetProcessInfo(const std::string& name) {
+void GetProcessInfo(std::string names) {
+    const std::string name = names+".exe";
     std::vector<DWORD> pids = FindPidByName(name);
     if (pids.empty()) {
         std::cout << "No processes found with the given name." << std::endl;
@@ -130,3 +133,22 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+/*
+Resources:
+
+- https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32
+- https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot
+- https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-process32first
+- https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+*/ 
