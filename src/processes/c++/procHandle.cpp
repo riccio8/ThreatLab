@@ -227,7 +227,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         GetProcessInfo(argv[2]);
-    } else if (command == "kill") {
+    }else if (command == "help"){
+        DisplayHelp();    
+    }else if (command == "kill") {
         if (argc < 3) {
             std::cout << "Usage: kill <process_name>" << std::endl;
             return 1;
