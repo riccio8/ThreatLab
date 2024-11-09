@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 
+
+
+
+
 void DisplayHelp() {
     std::cout << "This is a tool for process analysis, it is suggested to use the 'list' args as first one... (processes name without the .exe and the capital letter if the process name has it)" << std::endl;
     std::cout << "Usage: ProcHandle <command> [arguments]" << std::endl;
@@ -15,6 +19,41 @@ void DisplayHelp() {
     std::cout << "  suspend <proc_name>     Suspend the process with all his threads" << std::endl;
     std::cout << "  resume <proc_name>      Resume the process with all his threads" << std::endl;
 }
+
+
+class ProcessManager {
+public:
+    const int IDLE_PRIORITY_CLASS;
+    const int BELOW_NORMAL_PRIORITY_CLASS;
+    const int NORMAL_PRIORITY_CLASS;
+    const int ABOVE_NORMAL_PRIORITY_CLASS;
+    const int HIGH_PRIORITY_CLASS;
+    const int REALTIME_PRIORITY_CLASS;
+
+    ProcessManager()
+        : IDLE_PRIORITY_CLASS(0x00000040),
+          BELOW_NORMAL_PRIORITY_CLASS(0x00004000),
+          NORMAL_PRIORITY_CLASS(0x00000020),
+          ABOVE_NORMAL_PRIORITY_CLASS(0x00008000),
+          HIGH_PRIORITY_CLASS(0x00000080),
+          REALTIME_PRIORITY_CLASS(0x00000100) {
+
+    }
+
+    ~ProcessManager() {
+    }
+};
+
+
+    void ListProcesses();
+    void GetProcessInfo(const std::string& name);
+    void SuspendProcess(const std::string& name);
+    void ResumeProcess(const std::string& name);
+    void Kill(const std::string& name);
+
+private:
+    std::vector<DWORD> FindPidsByName(const std::string& processName);
+};
 
 // This function use find the pid (process id) by it's name creating a tool that makes a snapshot of the processes
 std::vector<DWORD> FindPidByName(const std::string& processName) {
@@ -43,8 +82,8 @@ std::vector<DWORD> FindPidByName(const std::string& processName) {
     return pids;
 }
 
-void ListInfoProcesses() {
-    std::cout << "Listing all processes..." << std::endl;
+void ProcessManager::ListProcesses() {
+        std::cout << "Listing all processes..." << std::endl;
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
 
@@ -70,8 +109,8 @@ void ListInfoProcesses() {
     CloseHandle(snapshot);
 }
 
-void GetProcessInfo(std::string names) {
-    const std::string name = names+".exe";
+void ProcessManager::GetProcessInfo(const std::string& names) {
+        const std::string name = names+".exe";
     std::vector<DWORD> pids = FindPidByName(name);
     if (pids.empty()) {
         std::cout << "No processes found with the given name." << std::endl;
@@ -98,10 +137,8 @@ void GetProcessInfo(std::string names) {
     }
 }
 
-void suspend(const std::string& name)
-{
-
-    std::vector<DWORD> pids = FindPidByName(name);
+void ProcessManager::SuspendProcess(const std::string& name) {
+     std::vector<DWORD> pids = FindPidByName(name);
 
     if (pids.empty()) {
         std::cout << "No processes found with name: " << name << std::endl;
@@ -146,12 +183,7 @@ void suspend(const std::string& name)
     CloseHandle(hThreadSnapshot);
 }
 
-
-
-
-void resume(const std::string& name)
-{
-
+void ProcessManager::ResumeProcess(const std::string& name) {
     std::vector<DWORD> pids = FindPidByName(name);
 
     if (pids.empty()) {
@@ -197,7 +229,7 @@ void resume(const std::string& name)
     CloseHandle(hThreadSnapshot);
 }
 
-void TerminateProcessByName(const std::string& name) {
+void ProcessManager::Kill(const std::string& name) {
     std::vector<DWORD> pids = FindPidByName(name);
     for (const auto& pid : pids) {
         HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
@@ -217,38 +249,36 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    ProcessManager pm;
     std::string command = argv[1];
 
     if (command == "list") {
-        ListInfoProcesses();
+        pm.ListProcesses();
     } else if (command == "info") {
         if (argc < 3) {
             std::cout << "Usage: info <process_name>" << std::endl;
             return 1;
         }
-        GetProcessInfo(argv[2]);
-    }else if (command == "help"){
-        DisplayHelp();    
-    }else if (command == "kill") {
+        pm.GetProcessInfo(argv[2]);
+    } else if (command == "kill") {
         if (argc < 3) {
             std::cout << "Usage: kill <process_name>" << std::endl;
             return 1;
         }
-        TerminateProcessByName(argv[2]);
+        pm.Kill(argv[2]);
     } else if (command == "suspend") {
         if (argc < 3) {
             std::cout << "Usage: suspend <process name>" << std::endl;
             return 1;
         }
-        suspend(argv[2]);
-    }else if (command == "resume"){
-         if (argc < 3) {
+        pm.SuspendProcess(argv[2]);
+    } else if (command == "resume") {
+        if (argc < 3) {
             std::cout << "Usage: resume <process name>" << std::endl;
             return 1;
         }
-        resume(argv[2]);
-    
-    }else {
+        pm.ResumeProcess(argv[2]);
+    } else {
         std::cout << "Error: Unknown command: " << command << std::endl;
         DisplayHelp();
     }
