@@ -225,7 +225,7 @@ protect <process_name> <lpAddress> <dwSize> <flNewProtect>
 
 
 
-### 9. `protect`
+### 9. `connection`
 
 #### Description
 Show the connection on ur local machine
