@@ -8,8 +8,6 @@
 
 
 
-
-
 void DisplayHelp() {
     std::cout << "This is a tool for process analysis, it is suggested to use the 'list' args as first one... (processes name without the .exe and the capital letter if the process name has it)" << std::endl;
     std::cout << "Usage: ProcHandle <command> [arguments]" << std::endl;
@@ -18,31 +16,17 @@ void DisplayHelp() {
     std::cout << "  info <proc_name>        Retrieve path for a specific process by its name." << std::endl;
     std::cout << "  suspend <proc_name>     Suspend the process with all his threads" << std::endl;
     std::cout << "  resume <proc_name>      Resume the process with all his threads" << std::endl;
+    std::cout << "  kill <proc_name>        Kill the process" << std::endl;
 }
 
 
 class ProcessManager {
 public:
-    const int IDLE_PRIORITY_CLASS;
-    const int BELOW_NORMAL_PRIORITY_CLASS;
-    const int NORMAL_PRIORITY_CLASS;
-    const int ABOVE_NORMAL_PRIORITY_CLASS;
-    const int HIGH_PRIORITY_CLASS;
-    const int REALTIME_PRIORITY_CLASS;
-
-    ProcessManager()
-        : IDLE_PRIORITY_CLASS(0x00000040),
-          BELOW_NORMAL_PRIORITY_CLASS(0x00004000),
-          NORMAL_PRIORITY_CLASS(0x00000020),
-          ABOVE_NORMAL_PRIORITY_CLASS(0x00008000),
-          HIGH_PRIORITY_CLASS(0x00000080),
-          REALTIME_PRIORITY_CLASS(0x00000100) {
-
+    ProcessManager(){
     }
-
     ~ProcessManager() {
     }
-};
+
 
 
     void ListProcesses();
