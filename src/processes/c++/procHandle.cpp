@@ -7,17 +7,18 @@
 #include <vector>
 
 
-
 void DisplayHelp() {
-    std::cout << "This is a tool for process analysis, it is suggested to use the 'list' args as first one... (processes name without the .exe and the capital letter if the process name has it)" << std::endl;
-    std::cout << "Usage: ProcHandle <command> [arguments]" << std::endl;
-    std::cout << "Commands:" << std::endl;
-    std::cout << "  list                    List all running processes on the system." << std::endl;
-    std::cout << "  info <proc_name>        Retrieve path for a specific process by its name." << std::endl;
-    std::cout << "  suspend <proc_name>     Suspend the process with all his threads" << std::endl;
-    std::cout << "  resume <proc_name>      Resume the process with all his threads" << std::endl;
-    std::cout << "  kill <proc_name>        Kill the process" << std::endl;
+    std::cout << "This is a tool for process analysis. Use 'list' as the first argument.\n"
+              << "Note: Process names should be provided without '.exe' and without uppercase letters if applicable.\n\n"
+              << "Usage: ProcHandle <command> [arguments]\n"
+              << "Commands:\n"
+              << "  list                   - List all running processes on the system.\n"
+              << "  info <proc_name>       - Retrieve path for a specific process by its name.\n"
+              << "  suspend <proc_name>    - Suspend the process and its threads.\n"
+              << "  resume <proc_name>     - Resume the process and its threads.\n"
+              << "  kill <proc_name>       - Terminate the process.\n";
 }
+
 
 
 class ProcessManager {
@@ -36,11 +37,11 @@ public:
     void Kill(const std::string& name);
 
 private:
-    std::vector<DWORD> FindPidsByName(const std::string& processName);
+    std::vector<DWORD> FindPidByName(const std::string& processName);
 };
 
 // This function use find the pid (process id) by it's name creating a tool that makes a snapshot of the processes
-std::vector<DWORD> FindPidByName(const std::string& processName) {
+std::vector<DWORD> ProcessManager::FindPidByName(const std::string& processName) {
     std::vector<DWORD> pids;
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -67,7 +68,7 @@ std::vector<DWORD> FindPidByName(const std::string& processName) {
 }
 
 void ProcessManager::ListProcesses() {
-        std::cout << "Listing all processes..." << std::endl;
+    std::cout << "Listing all processes..." << std::endl;
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
 
@@ -94,8 +95,7 @@ void ProcessManager::ListProcesses() {
 }
 
 void ProcessManager::GetProcessInfo(const std::string& names) {
-        const std::string name = names+".exe";
-    std::vector<DWORD> pids = FindPidByName(name);
+    std::vector<DWORD> pids = FindPidByName(names);
     if (pids.empty()) {
         std::cout << "No processes found with the given name." << std::endl;
         return;
@@ -192,11 +192,11 @@ void ProcessManager::ResumeProcess(const std::string& name) {
                     if (hThread != NULL) {
                         DWORD suspendResult = ResumeThread(hThread);
                         if (suspendResult == (DWORD)-1) {
-                            std::cout << "Error suspending thread with ID: " 
+                            std::cout << "Error resuming thread with ID: " 
                                       << threadEntry.th32ThreadID 
                                       << " in process ID: " << pid << std::endl;
                         } else {
-                            std::cout << "Successfully suspended thread with ID: " 
+                            std::cout << "Successfully resumed thread with ID: " 
                                       << threadEntry.th32ThreadID 
                                       << " in process ID: " << pid << std::endl;
                         }
@@ -288,3 +288,6 @@ Resources:
 - 
 - 
 */ 
+
+
+//     const std::string name = names+".exe";
