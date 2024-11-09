@@ -98,11 +98,13 @@ public:
     void ExecuteNetstatEstablishedConnections();
     void ExecuteNetstatRoutingTable();
     void ExecuteNetstatNetworkStats();
+    void NetProcess(const std::string& names);
 
     // Functions for executing arp commands
     void ExecuteArpTable();
     void ExecuteArpCacheStatistics();
     void ExecuteArpDeleteEntry(const std::string& ipAddress);
+    
 
 private:
     std::string exec(const std::string& cmd);
@@ -122,10 +124,11 @@ public:
     void Kill(const std::string& name);
     void SetProcessPriority(const std::string& name, const std::string& priority);
     
+    std::vector<DWORD> FindPidByName(const std::string& processName);
+    
     
 
 private:
-    std::vector<DWORD> FindPidByName(const std::string& processName);
     void DisplayPriorityLevels();
 };
 
@@ -466,6 +469,28 @@ void NetworkManager::ExecuteArpDeleteEntry(const std::string& ipAddress) {
     std::cout << "Deleted ARP entry for IP address " << ipAddress << ":\n" << output << std::endl;
 }
 
+void NetworkManager::NetProcess(const std::string& names) {
+    ProcessManager pm;
+    std::vector<DWORD> pids = pm.FindPidByName(names);
+        if (pids.empty()) {
+        std::cout << "No processes found with the given name." << std::endl;
+        return;
+    }
+    
+    std::vector<std::string> options = {"-t", "-u", "-l", "-n", "-p"};
+    
+    for (auto id : pids) {
+        for (const auto& option : options) {
+            std::string cmd = "netstat " + option + " | grep " + std::to_string(id);
+            std::string output = exec(cmd); 
+            std::cout << "Connection for process\t" << names 
+                      << " with specific id\t" << id 
+                      << " option\t" << option 
+                      << "\noutput:\n" << output << std::endl; 
+        }
+    }
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -534,7 +559,16 @@ int main(int argc, char* argv[]) {
             nm.ExecuteNetstatRoutingTable();
         } else if (netstatCommand == "stats") {
             nm.ExecuteNetstatNetworkStats();
-        } else {
+            
+        } else if (netstatCommand == "process"){
+            if (argc < 4) {
+                std::cout << "Usage: net process <process_name>" << std::endl;
+                return 1;
+            }
+            nm.NetProcess(argv[3]);
+        }
+        
+        else {
             std::cout << "Unknown netstat command: " << netstatCommand << std::endl;
             DisplayHelp();
         }
