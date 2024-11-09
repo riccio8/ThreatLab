@@ -7,6 +7,39 @@
 #include <vector>
 
 
+#ifndef ABOVE_NORMAL_PRIORITY_CLASS
+#define ABOVE_NORMAL_PRIORITY_CLASS 0x00008000  // Priority above NORMAL, below HIGH
+#endif
+
+#ifndef BELOW_NORMAL_PRIORITY_CLASS
+#define BELOW_NORMAL_PRIORITY_CLASS 0x00004000  // Priority above IDLE, below NORMAL
+#endif
+
+#ifndef HIGH_PRIORITY_CLASS
+#define HIGH_PRIORITY_CLASS 0x00000080  // For time-critical tasks; preempts NORMAL and IDLE
+#endif
+
+#ifndef IDLE_PRIORITY_CLASS
+#define IDLE_PRIORITY_CLASS 0x00000040  // Runs only when the system is idle
+#endif
+
+#ifndef NORMAL_PRIORITY_CLASS
+#define NORMAL_PRIORITY_CLASS 0x00000020  // No special scheduling needs
+#endif
+
+#ifndef PROCESS_MODE_BACKGROUND_BEGIN
+#define PROCESS_MODE_BACKGROUND_BEGIN 0x00100000  // Start background processing mode
+#endif
+
+#ifndef PROCESS_MODE_BACKGROUND_END
+#define PROCESS_MODE_BACKGROUND_END 0x00200000  // End background processing mode
+#endif
+
+#ifndef REALTIME_PRIORITY_CLASS
+#define REALTIME_PRIORITY_CLASS 0x00000100  // Highest possible priority, preempts all others
+#endif
+
+
 void DisplayHelp() {
     std::cout << "This is a tool for process analysis. Use 'list' as the first argument.\n"
               << "Note: Process names should be provided without '.exe' and without uppercase letters if applicable.\n\n"
@@ -16,7 +49,11 @@ void DisplayHelp() {
               << "  info <proc_name>       - Retrieve path for a specific process by its name.\n"
               << "  suspend <proc_name>    - Suspend the process and its threads.\n"
               << "  resume <proc_name>     - Resume the process and its threads.\n"
-              << "  kill <proc_name>       - Terminate the process.\n";
+              << "  kill <proc_name>       - Terminate the process.\n"
+              << "  setpriority <proc_name> <priority>  - Set the priority of a process.\n"
+              << "    Priority levels:\n"
+              << "      idle, below_normal, normal, above_normal, high, realtime\n"
+              << "      background_begin, background_end\n";
 }
 
 
@@ -28,17 +65,35 @@ public:
     ~ProcessManager() {
     }
 
-
-
     void ListProcesses();
     void GetProcessInfo(const std::string& name);
     void SuspendProcess(const std::string& name);
     void ResumeProcess(const std::string& name);
     void Kill(const std::string& name);
+    void SetProcessPriority(const std::string& name, const std::string& priority);
 
 private:
     std::vector<DWORD> FindPidByName(const std::string& processName);
+    void DisplayPriorityLevels();
 };
+
+
+void ProcessManager::DisplayPriorityLevels() {
+    std::cout << "Available Priority Levels:\n"
+              << "-----------------------------------------\n"
+              << "| Priority Level     | Description      |\n"
+              << "-----------------------------------------\n"
+              << "| idle               | Runs only when the system is idle                 |\n"
+              << "| below_normal       | Priority above IDLE, below NORMAL                 |\n"
+              << "| normal             | No special scheduling needs                       |\n"
+              << "| above_normal       | Priority above NORMAL, below HIGH                 |\n"
+              << "| high               | For time-critical tasks; preempts NORMAL and IDLE |\n"
+              << "| realtime           | Highest possible priority, preempts all others    |\n"
+              << "| background_begin   | Start background processing mode                  |\n"
+              << "| background_end     | End background processing mode                    |\n"
+              << "-----------------------------------------\n";
+}
+
 
 // This function use find the pid (process id) by it's name creating a tool that makes a snapshot of the processes
 std::vector<DWORD> ProcessManager::FindPidByName(const std::string& processName) {
@@ -125,13 +180,13 @@ void ProcessManager::SuspendProcess(const std::string& name) {
      std::vector<DWORD> pids = FindPidByName(name);
 
     if (pids.empty()) {
-        std::cout << "No processes found with name: " << name << std::endl;
+        std::cerr << "No processes found with name: " << name << std::endl;
         return;
     }
 
     HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
     if (hThreadSnapshot == INVALID_HANDLE_VALUE) {
-        std::cout << "Error: Unable to create thread snapshot." << std::endl;
+        std::cerr << "Error: Unable to create thread snapshot." << std::endl;
         return;
     }
 
@@ -146,7 +201,7 @@ void ProcessManager::SuspendProcess(const std::string& name) {
                     if (hThread != NULL) {
                         DWORD suspendResult = SuspendThread(hThread);
                         if (suspendResult == (DWORD)-1) {
-                            std::cout << "Error suspending thread with ID: " 
+                            std::cerr << "Error suspending thread with ID: " 
                                       << threadEntry.th32ThreadID 
                                       << " in process ID: " << pid << std::endl;
                         } else {
@@ -166,6 +221,7 @@ void ProcessManager::SuspendProcess(const std::string& name) {
 
     CloseHandle(hThreadSnapshot);
 }
+
 
 void ProcessManager::ResumeProcess(const std::string& name) {
     std::vector<DWORD> pids = FindPidByName(name);
@@ -227,6 +283,46 @@ void ProcessManager::Kill(const std::string& name) {
     }
 }
 
+void ProcessManager::SetProcessPriority(const std::string& name, const std::string& priority) {
+    std::vector<DWORD> pids = FindPidByName(name);
+    if (pids.empty()) {
+        std::cerr << "No processes found with name: " << name << std::endl;
+        return;
+    }
+    
+    DWORD priorityClass;
+    if (priority == "idle") priorityClass = IDLE_PRIORITY_CLASS;
+    else if (priority == "below_normal") priorityClass = BELOW_NORMAL_PRIORITY_CLASS;
+    else if (priority == "normal") priorityClass = NORMAL_PRIORITY_CLASS;
+    else if (priority == "above_normal") priorityClass = ABOVE_NORMAL_PRIORITY_CLASS;
+    else if (priority == "high") priorityClass = HIGH_PRIORITY_CLASS;
+    else if (priority == "realtime") priorityClass = REALTIME_PRIORITY_CLASS;
+    else if (priority == "background_begin") priorityClass = PROCESS_MODE_BACKGROUND_BEGIN;
+    else if (priority == "background_end") priorityClass = PROCESS_MODE_BACKGROUND_END;
+    else {
+        std::cerr << "Invalid priority level: " << priority << std::endl;
+        DisplayPriorityLevels();
+        return;
+    }
+
+    std::cout << "Setting process priority to " << priority << std::endl;
+    
+    for (DWORD pid : pids) {
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+        if (hProcess == NULL) {
+            std::cerr << "Error opening process: " << GetLastError() << std::endl;
+            continue;
+        }
+        
+        if (!SetPriorityClass(hProcess, priorityClass)) {
+            std::cerr << "Error setting priority: " << GetLastError() << std::endl;
+        }
+        
+        CloseHandle(hProcess);
+    }
+}
+
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         DisplayHelp();
@@ -238,7 +334,9 @@ int main(int argc, char* argv[]) {
 
     if (command == "list") {
         pm.ListProcesses();
-    } else if (command == "info") {
+    } else if (command == "help") {
+        DisplayHelp();
+    }else if (command == "info") {
         if (argc < 3) {
             std::cout << "Usage: info <process_name>" << std::endl;
             return 1;
@@ -262,7 +360,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         pm.ResumeProcess(argv[2]);
-    } else {
+    } else if (command == "setpriority") {
+        if (argc < 4) {
+            std::cout << "Usage: setpriority <process_name> <priority>" << std::endl;
+            return 1;
+        }
+        pm.SetProcessPriority(argv[2], argv[3]); 
+        
+    }else {
         std::cout << "Error: Unknown command: " << command << std::endl;
         DisplayHelp();
     }
