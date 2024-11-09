@@ -4,6 +4,10 @@
 #include <psapi.h>
 #include <cstdlib> 
 #include <string>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <array>
 #include <vector>
 
 
@@ -41,10 +45,11 @@
 
 
 void DisplayHelp() {
-    std::cout << "This is a tool for process analysis. Use 'list' as the first argument.\n"
+    std::cout << "This is a tool for process and network analysis. Use the corresponding command as the first argument.\n"
               << "Note: Process names should be provided without '.exe' and without uppercase letters if applicable.\n\n"
               << "Usage: ProcHandle <command> [arguments]\n"
               << "Commands:\n"
+              << "\nProcess Management:\n"
               << "  list                   - List all running processes on the system.\n"
               << "  info <proc_name>       - Retrieve path for a specific process by its name.\n"
               << "  suspend <proc_name>    - Suspend the process and its threads.\n"
@@ -53,10 +58,55 @@ void DisplayHelp() {
               << "  setpriority <proc_name> <priority>  - Set the priority of a process.\n"
               << "    Priority levels:\n"
               << "      idle, below_normal, normal, above_normal, high, realtime\n"
-              << "      background_begin, background_end\n";
+              << "      background_begin, background_end\n"
+              << "\nNetwork Commands:\n"
+              << "  net <command>      - Display network status and statistics.\n"
+              << "    Available sub-commands for 'netstat':\n"
+              << "      all                 - Show all TCP/UDP connections with numeric addresses.\n"
+              << "      names               - Show all TCP/UDP connections with resolved names.\n"
+              << "      programs            - Show connections along with the programs using them.\n"
+              << "      processid           - Show connections with their respective process IDs.\n"
+              << "      listening           - Show only listening connections.\n"
+              << "      established         - Show only established connections.\n"
+              << "      routing             - Show the routing table.\n"
+              << "      stats               - Show network statistics.\n"
+              << "\nARP Commands:\n"
+              << "  arp <command>          - Display or modify the ARP (Address Resolution Protocol) table.\n"
+              << "    Available sub-commands for 'arp':\n"
+              << "      table               - Show the ARP table.\n"
+              << "      cache               - Show statistics about the ARP cache.\n"
+              << "      delete <ip_address> - Delete an ARP entry for the specified IP address.\n"
+              << "\nExample usage:\n"
+              << "  ProcHandle list\n"
+              << "  ProcHandle netstat all\n"
+              << "  ProcHandle arp delete 192.168.1.1\n";
 }
 
 
+
+class NetworkManager {
+public:
+    NetworkManager() {}
+    ~NetworkManager() {}
+
+    // Functions for executing netstat commands
+    void ExecuteNetstatAllConnections();
+    void ExecuteNetstatConnectionsAndNames();
+    void ExecuteNetstatWithPrograms();
+    void ExecuteNetstatWithProcessId();
+    void ExecuteNetstatListeningConnections();
+    void ExecuteNetstatEstablishedConnections();
+    void ExecuteNetstatRoutingTable();
+    void ExecuteNetstatNetworkStats();
+
+    // Functions for executing arp commands
+    void ExecuteArpTable();
+    void ExecuteArpCacheStatistics();
+    void ExecuteArpDeleteEntry(const std::string& ipAddress);
+
+private:
+    std::string exec(const std::string& cmd);
+};
 
 class ProcessManager {
 public:
@@ -71,11 +121,27 @@ public:
     void ResumeProcess(const std::string& name);
     void Kill(const std::string& name);
     void SetProcessPriority(const std::string& name, const std::string& priority);
+    
+    
 
 private:
     std::vector<DWORD> FindPidByName(const std::string& processName);
     void DisplayPriorityLevels();
 };
+
+// Executes a command and returns the output as a string
+std::string NetworkManager::exec(const std::string& cmd) {
+    std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), [](FILE* f) { if (f) fclose(f); });
+    if (!pipe) return "";
+
+    char buffer[128];
+    std::string result = "";
+    while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
+        result += buffer;
+    }
+    return result;
+}
+
 
 
 void ProcessManager::DisplayPriorityLevels() {
@@ -323,6 +389,84 @@ void ProcessManager::SetProcessPriority(const std::string& name, const std::stri
 }
 
 
+// Execute "netstat -an": Shows TCP/UDP connections with numeric addresses
+void NetworkManager::ExecuteNetstatAllConnections() {
+    std::string cmd = "powershell.exe netstat -an";
+    std::string output = exec(cmd);
+    std::cout << "TCP/UDP connections with numeric addresses:\n" << output << std::endl;
+}
+
+// Execute "netstat -a": Shows TCP/UDP connections with resolved names
+void NetworkManager::ExecuteNetstatConnectionsAndNames() {
+    std::string cmd = "powershell.exe netstat -a";
+    std::string output = exec(cmd);
+    std::cout << "TCP/UDP connections with resolved names:\n" << output << std::endl;
+}
+
+// Execute "netstat -b": Shows connections with the programs using them
+void NetworkManager::ExecuteNetstatWithPrograms() {
+    std::string cmd = "powershell.exe netstat -b";
+    std::string output = exec(cmd);
+    std::cout << "Connections with the programs using them:\n" << output << std::endl;
+}
+
+// Execute "netstat -o": Shows connections with the process ID
+void NetworkManager::ExecuteNetstatWithProcessId() {
+    std::string cmd = "powershell.exe netstat -o";
+    std::string output = exec(cmd);
+    std::cout << "Connections with the process ID:\n" << output << std::endl;
+}
+
+// Execute "netstat -an | findstr LISTENING": Shows only listening connections
+void NetworkManager::ExecuteNetstatListeningConnections() {
+    std::string cmd = "powershell.exe netstat -an | findstr LISTENING";
+    std::string output = exec(cmd);
+    std::cout << "Listening connections:\n" << output << std::endl;
+}
+
+// Execute "netstat -an | findstr ESTABLISHED": Shows only established connections
+void NetworkManager::ExecuteNetstatEstablishedConnections() {
+    std::string cmd = "powershell.exe netstat -an | findstr ESTABLISHED";
+    std::string output = exec(cmd);
+    std::cout << "Established connections:\n" << output << std::endl;
+}
+
+// Execute "netstat -r": Shows the routing table
+void NetworkManager::ExecuteNetstatRoutingTable() {
+    std::string cmd = "powershell.exe netstat -r";
+    std::string output = exec(cmd);
+    std::cout << "Routing table:\n" << output << std::endl;
+}
+
+// Execute "netstat -e": Shows network statistics
+void NetworkManager::ExecuteNetstatNetworkStats() {
+    std::string cmd = "powershell.exe netstat -e";
+    std::string output = exec(cmd);
+    std::cout << "Network statistics:\n" << output << std::endl;
+}
+
+// Execute "arp -a": Shows the ARP table
+void NetworkManager::ExecuteArpTable() {
+    std::string cmd = "powershell.exe arp -a";
+    std::string output = exec(cmd);
+    std::cout << "ARP table:\n" << output << std::endl;
+}
+
+// Execute "arp -s <ip> <mac>": Adds a static ARP entry
+void NetworkManager::ExecuteArpCacheStatistics() {
+    std::string cmd = "powershell.exe arp -s";
+    std::string output = exec(cmd);
+    std::cout << "ARP cache statistics:\n" << output << std::endl;
+}
+
+// Execute "arp -d <ip>": Deletes an ARP entry by IP address
+void NetworkManager::ExecuteArpDeleteEntry(const std::string& ipAddress) {
+    std::string cmd = "powershell.exe arp -d " + ipAddress;
+    std::string output = exec(cmd);
+    std::cout << "Deleted ARP entry for IP address " << ipAddress << ":\n" << output << std::endl;
+}
+
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         DisplayHelp();
@@ -330,13 +474,14 @@ int main(int argc, char* argv[]) {
     }
 
     ProcessManager pm;
+    NetworkManager nm;  
     std::string command = argv[1];
 
     if (command == "list") {
         pm.ListProcesses();
     } else if (command == "help") {
         DisplayHelp();
-    }else if (command == "info") {
+    } else if (command == "info") {
         if (argc < 3) {
             std::cout << "Usage: info <process_name>" << std::endl;
             return 1;
@@ -366,8 +511,55 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         pm.SetProcessPriority(argv[2], argv[3]); 
-        
-    }else {
+    } else if (command == "net") { 
+        if (argc < 3) {
+            std::cout << "Usage: net <command>" << std::endl;
+            return 1;
+        }
+
+        std::string netstatCommand = argv[2];
+        if (netstatCommand == "all") {
+            nm.ExecuteNetstatAllConnections();
+        } else if (netstatCommand == "names") {
+            nm.ExecuteNetstatConnectionsAndNames();
+        } else if (netstatCommand == "programs") {
+            nm.ExecuteNetstatWithPrograms();
+        } else if (netstatCommand == "processid") {
+            nm.ExecuteNetstatWithProcessId();
+        } else if (netstatCommand == "listening") {
+            nm.ExecuteNetstatListeningConnections();
+        } else if (netstatCommand == "established") {
+            nm.ExecuteNetstatEstablishedConnections();
+        } else if (netstatCommand == "routing") {
+            nm.ExecuteNetstatRoutingTable();
+        } else if (netstatCommand == "stats") {
+            nm.ExecuteNetstatNetworkStats();
+        } else {
+            std::cout << "Unknown netstat command: " << netstatCommand << std::endl;
+            DisplayHelp();
+        }
+    } else if (command == "arp") {  
+        if (argc < 3) {
+            std::cout << "Usage: arp <command>" << std::endl;
+            return 1;
+        }
+
+        std::string arpCommand = argv[2];
+        if (arpCommand == "table") {
+            nm.ExecuteArpTable();
+        } else if (arpCommand == "cache") {
+            nm.ExecuteArpCacheStatistics();
+        } else if (arpCommand == "delete") {
+            if (argc < 4) {
+                std::cout << "Usage: arp delete <ip_address>" << std::endl;
+                return 1;
+            }
+            nm.ExecuteArpDeleteEntry(argv[3]);
+        } else {
+            std::cout << "Unknown arp command: " << arpCommand << std::endl;
+            DisplayHelp();
+        }
+    } else {
         std::cout << "Error: Unknown command: " << command << std::endl;
         DisplayHelp();
     }
@@ -386,12 +578,6 @@ Resources:
 - https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
 - https://learn.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getmodulefilenameexa
 - https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess
-- 
-- 
-- 
-- 
-- 
-- 
 */ 
 
 
