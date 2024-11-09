@@ -32,7 +32,7 @@ _start:
     xor rbx, rbx
     mov bx, 0x5C11
     shl rbx, 16
-    add rbx, 0x7F000001
+    add rbx, 0x7F000001         ; Add IP address 127.0.0.1 (loopback in Big Endian) change it with the real ip
     push rbx
     mov rsi, rsp
 
