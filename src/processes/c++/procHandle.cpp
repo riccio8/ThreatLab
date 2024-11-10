@@ -132,7 +132,7 @@ private:
     void DisplayPriorityLevels();
 };
 
-// Executes a command and returns the output as a string
+// Executes a command and returns the output as a string (found this method online)
 std::string NetworkManager::exec(const std::string& cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), [](FILE* f) { if (f) fclose(f); });
     if (!pipe) return "";
