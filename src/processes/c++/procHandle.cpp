@@ -132,7 +132,7 @@ private:
     void DisplayPriorityLevels();
 };
 
-// Executes a command and returns the output as a string (found this method online)
+// Executes a command and returns the output as a string
 std::string NetworkManager::exec(const std::string& cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), [](FILE* f) { if (f) fclose(f); });
     if (!pipe) return "";
@@ -340,6 +340,10 @@ void ProcessManager::ResumeProcess(const std::string& name) {
 
 void ProcessManager::Kill(const std::string& name) {
     std::vector<DWORD> pids = FindPidByName(name);
+    if (pids.empty()) {
+        std::cerr << "No processes found with name: " << name << std::endl;
+        return;
+    }
     for (const auto& pid : pids) {
         HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
         if (hProcess) {
