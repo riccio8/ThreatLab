@@ -1,49 +1,57 @@
+---
+
+# Offensive & Defensive Tools Repository
+
+![Golang](https://img.shields.io/badge/Golang-Tools-00ADD8?style=flat&logo=go)  
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)  
+![Version](https://img.shields.io/badge/version-1.0.0-blue)  
+![License](https://img.shields.io/badge/license-MIT-yellow)  
+
+## **Overview**
+
+This repository includes a collection of tools and libraries designed for offensive and defensive security operations, covering areas such as process and memory analysis, network security, vulnerability detection, and exploit development. It provides a versatile set of resources for researchers, cybersecurity professionals, and developers.
+
+## **Directory Structure**
+
+- **`lib/`**: Core libraries and DLLs for various security-related tasks.  
+  - Includes C++, Python, Go, and Assembly-based libraries for memory, network, and sandboxing functionalities.
+  
+- **`shellcodes/`**: Pre-built shellcode examples for penetration testing and exploit development.  
+  - Contains scripts for reverse shells, directory hiding, and more.
+
+- **`src/`**: Main source files for various projects.  
+  - **`Mem/`**: Tools for memory analysis, hex viewers, ROP chain detection, and system calls management.  
+  - **`net/`**: Network-related utilities focusing on DOS/DDOS testing and network resilience.  
+  - **`processes/`**: Process monitoring and manipulation tools, including privilege escalation scripts and anti-debugging mechanisms.
+
+- **`rules/`**: YARA rules for malware detection, ransomware identification, keylogging detection, and other threat signatures.
+
+## **Key Features**
+
+- **Process & Memory Analysis**:  
+  Identify and analyze running processes, heap memory, and vulnerabilities in real-time.
+
+- **Network Security Tools**:  
+  Utilities designed to simulate and analyze various network threats like DOS and DDOS attacks.
+
+- **Sandboxing**:  
+  Isolated environments for malware testing and secure code execution.
+
+- **Cross-Platform Capabilities**:  
+  Primarily focused on Windows, with some support for Linux environments.
+
+## **Technologies Used**
+
+- **Assembly**: For low-level system manipulation.  
+- **C++**: High-performance process and memory handling tools.  
+- **Golang**: Lightweight and efficient network and process utilities.  
+- **Python**: Scripting for process automation and vulnerability detection.  
+- **YARA**: Advanced threat detection through rule-based signatures.
+
+## **Disclaimer**
+
+⚠️ **Disclaimer**: All tools in this repository are intended for **educational and legal security research purposes only**. Misuse of these tools for malicious purposes is strictly prohibited. The author takes no responsibility for any illegal use.
 
 ---
 
-# Process & Memory Analysis Toolkit
-
-![Golang](https://camo.githubusercontent.com/71a6285538ba19212f6d670be3a9a1a7c1a21f9f6865db3b3251206aadde7c34/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f546f6f6c732532302532362532305265736f7572636573253230417661696c61626c652d3139302d336338356434)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-yellow)
-[![Coverage Status](https://coveralls.io/repos/github/tuo-username/tuo-repository/badge.svg)](https://coveralls.io/github/tuo-username/tuo-repository)
-
-
-## Description
-
-This repository contains tools and libraries for security written in Assembly, Go (Golang), C++, yara and Python designed for process and memory analysis, vulnerability detection, and defense against various types of exploits. The project includes DLL files, DOS utilities, and other low-level tools for analyzing system internals, processes, and memory states.
-
-## Features
-
-- **Process Monitoring**: Tools for monitoring active processes and analyzing their behavior.
-- **Memory Analysis**: Utilities for inspecting memory regions, heap, and stack allocations.
-- **Vulnerability Detection**: Tools to identify potential vulnerabilities, such as:
-  - Unencrypted HTTP traffic
-  - Compressed data (potential malware)
-  - Memory leaks
-  - Unauthorized memory access
-    and so on...
-    
-- **DOS Tools**: Utilities for interacting with DOS and DDOS attacks for bug bounty 
-- **Cross-Platform Support**:
-  - **Windows**: Most of the tools are designed to work on Windows systems. (most golang scripts are designed for windows)
-  - **Linux**: Some tools are specifically designed for Linux environments.(specifically some memory tools)
-
-## Languages & Tools Used
-
-- **Assembly**: Low-level memory manipulation and process interaction.
-- **Golang**: High-performance utilities for process and network analysis.
-- **C++**: System-level libraries for detailed interaction and vulnerability detection.
-- **Python**: Scripting tools to integrate analysis and detection capabilities.
-- **Yara**: Anti-malware rules
-
-## Disclaimer
-
-⚠️ **Disclaimer**: The tools and code provided in this repository are intended for educational and defensive security purposes **ONLY**. I do **NOT** take responsibility for how these tools are used. Use these resources ethically and legally.
-
----
-
-```text
-the assembly one needs some improvements... ;)
-```
+*Note: Continuous improvement is ongoing, especially for assembly-related tools!*
