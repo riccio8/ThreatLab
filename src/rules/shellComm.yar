@@ -9,6 +9,7 @@ rule Detect_Suspicious_PowerShell
         $exec1 = "Invoke-Expression"
         $exec2 = "DownloadString"
         $exec3 = "System.Net.WebClient"
+        $exec4 = "WinExec"
     
     condition:
         any of ($exec*)
