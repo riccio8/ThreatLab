@@ -3,13 +3,13 @@
 
 void hideBootFolder() {
     // Hide the boot folder
-    system("attrib +h +s +r C:\\boot");
+    system("attrib +h +s +r C:\\boot");         // To unhide: attrib -h -s -r C:\boot
     std::cout << "'C:\\boot' folder hidden.\n";
 }
 
 void denyAccessToBootFolder() {
     // Deny access to all users
-    system("icacls C:\\boot /deny Everyone:F");
+    system("icacls C:\\boot /deny Everyone:F");        // Reset permissions: icacls C:\boot /reset
     std::cout << "Access to 'C:\\boot' folder denied for everyone.\n";
 }
 
