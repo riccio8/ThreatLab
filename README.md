@@ -9,7 +9,7 @@
 
 ## **Overview**
 
-This repository includes a collection of tools and libraries designed for offensive and defensive security operations, covering areas such as process and memory analysis, network security, vulnerability detection, and exploit development. It provides a versatile set of resources for researchers, cybersecurity professionals, and developers.
+This repository includes a collection of tools, resources and libraries designed for offensive and defensive security operations, covering areas such as process and memory analysis, network security, vulnerability detection, and exploit development. It provides a versatile set of resources for researchers, cybersecurity professionals, and developers.
 
 ## **Directory Structure**
 
@@ -23,8 +23,8 @@ This repository includes a collection of tools and libraries designed for offens
   - **`Mem/`**: Tools for memory analysis, hex viewers, ROP chain detection, and system calls management.  
   - **`net/`**: Network-related utilities focusing on DOS/DDOS testing and network resilience.  
   - **`processes/`**: Process monitoring and manipulation tools, including privilege escalation scripts and anti-debugging mechanisms.
-
-- **`rules/`**: YARA rules for malware detection, ransomware identification, keylogging detection, and other threat signatures.
+  - - **`resources/`**: That's a directory containing documents, videos and some other resources than may help u understanding deeply some args, for both beginners and advanced
+  - **`rules/`**: YARA rules for malware detection, ransomware identification, keylogging detection, and other threat signatures.
 
 ## **Key Features**
 
