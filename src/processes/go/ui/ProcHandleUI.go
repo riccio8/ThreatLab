@@ -139,7 +139,7 @@ func FindPidByNamePowerShell(processName string) ([]int, error) {
     for _, line := range lines {
         line = strings.TrimSpace(line)
         if pid, err := strconv.ParseUint(line, 10, 32); err == nil { // Convert to uint32 if valid.
-            pids = append(pids, uint32(pid)) // Add the PID to the list of PIDs.
+            pids = append(pids, int(pid)) // Add the PID to the list of PIDs.
         }
     }
 
@@ -788,11 +788,11 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 return
             }
 
-	    if address > ^uintptr(0) {
-	        lastOutput := "<p style='color:red;'>Address out of range for uintptr</p>"
-	        renderForm(w)
-	        return
-	    }
+		    if uintptr(address) > uintptr(0) {
+		        lastOutput = "<p style='color:red;'>Address out of range for uintptr</p>"
+		        renderForm(w)
+		        return
+		    }
 
 			
             size, err := strconv.Atoi(args[2])
