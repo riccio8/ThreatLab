@@ -138,8 +138,8 @@ func FindPidByNamePowerShell(processName string) ([]int, error) {
     // `strings.TrimSpace()` removes any extra whitespace, and `strconv.Atoi()` converts strings to integers.
     for _, line := range lines {
         line = strings.TrimSpace(line)
-        if pid, err := strconv.Atoi(line); err == nil { // Convert to integer if valid.
-            pids = append(pids, pid) // Add the PID to the list of PIDs.
+        if pid, err := strconv.ParseUint(line, 10, 32); err == nil { // Convert to uint32 if valid.
+            pids = append(pids, uint32(pid)) // Add the PID to the list of PIDs.
         }
     }
 
