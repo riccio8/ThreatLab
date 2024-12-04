@@ -787,6 +787,14 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
+
+	    if address > ^uintptr(0) {
+	        lastOutput := "<p style='color:red;'>Address out of range for uintptr</p>"
+	        renderForm(w)
+	        return
+	    }
+
+			
             size, err := strconv.Atoi(args[2])
             if err != nil {
                 lastOutput = fmt.Sprintf("<p style='color:red;'>Error parsing size: %v</p>", err)
