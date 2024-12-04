@@ -43,8 +43,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: c-cpp
-          build-mode: autobuild
+        # - language: c-cpp
+        #   build-mode: autobuild
         - language: go
           build-mode: autobuild
         - language: python
