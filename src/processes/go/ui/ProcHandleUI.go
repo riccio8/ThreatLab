@@ -817,6 +817,11 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
                 renderForm(w)
                 return
             }
+            if address > ^uint64(0)>>1 {
+                lastOutput = "<p style='color:red;'>Error: Address out of range for uintptr</p>"
+                renderForm(w)
+                return
+            }
             data := args[2]
             datas, err := WriteMemory(processName, uintptr(address), data)
             fmt.Print(datas)
