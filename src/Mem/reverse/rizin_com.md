@@ -469,4 +469,5 @@ Cutter provides a graphical interface to search for ROP gadgets.
 
 - Cutter: https://cutter.re
 - Rizin: https://rizin.re
+- [tutorial](https://www.jamieweb.net/blog/radare2-cutter-part-1-key-terminology-and-overview/)
 ```
