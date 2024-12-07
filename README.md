@@ -20,7 +20,7 @@ This repository includes a collection of tools, resources and libraries designed
   - **`Mem/`**: Tools for memory analysis, hex viewers, ROP chain detection, and system calls management.  
   - **`net/`**: Network-related utilities focusing on DOS/DDOS testing and network resilience.  
   - **`processes/`**: Process monitoring and manipulation tools, including privilege escalation scripts and anti-debugging mechanisms.
-  - - **`resources/`**: That's a directory containing documents, videos and some other resources than may help u understanding deeply some args, for both beginners and advanced
+  -  **`resources/`**: That's a directory containing documents, videos and some other resources than may help u understanding deeply some args, for both beginners and advanced
   - **`rules/`**: YARA rules for malware detection, ransomware identification, keylogging detection, and other threat signatures.
 
 ## **Key Features**
