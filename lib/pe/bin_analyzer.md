@@ -58,10 +58,10 @@ The code focuses on parsing and interacting with the core structures of a PE fil
 
 ## What's Next?
 
-There are a few ways you can extend this tool:
+There are a few ways i will do for extending this tool:
 
 - **Support for More Section Types**: The code currently works with the basic sections in a PE file. I will extend it to handle more advanced section types (like `.reloc`, `.debug`, or `.rsrc`).
   
-- **Modify Section Data**: You could modify the section data (e.g., apply obfuscation or patching) and then save the modified file.
+- **Modify Section Data**: I could modify the section data (e.g., apply obfuscation or patching) and then save the modified file.
 
-- **Error Handling**: The current error handling is basic. Y
+- **Error Handling**: The current error handling is basic. 
