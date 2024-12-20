@@ -42,6 +42,45 @@ func info(f *pe.File) pe.FileHeader {
 func optionalHeaders(f *pe.File) any {
 	return f.OptionalHeader
 }
+func theFile(f *pe.File) any {
+	return f.FileHeader
+}
+
+func coffNums(f *pe.File) any {
+	return f.COFFSymbols
+}
+
+func machine(f *pe.File) any {
+    return f.Machine 
+}
+
+func strings(f *pe.File) any {
+	return f.StringTable
+}
+
+func dates(f *pe.File) any {
+	return f.TimeDateStamp
+}
+
+func dwarf(f *pe.File) any {
+	res, err := f.DWARF()
+	if err != nil {
+		return err
+	}
+	return res
+}
+
+func pointerSymTables(f *pe.File) any {
+	return f.PointerToSymbolTable
+}
+
+func Characteristics(f *pe.File) any {
+    return f.Characteristics
+}
+
+
+
+
 
 func prettyPrintJSON(v interface{}) {
 	// Format the result as JSON with indentation for pretty printing
@@ -55,8 +94,8 @@ func prettyPrintJSON(v interface{}) {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: go run main.go <file> <command> [sectionName]")
-		fmt.Println("Commands: lib, sym, sections, info, optionalHeaders")
+		fmt.Println("Usage: peutils.exe <file> <command> [sectionName]")
+		fmt.Println("Commands: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, time, dwarf, pointerSymTables, characteristics")
 		return
 	}
 
@@ -107,8 +146,24 @@ func main() {
 	case "optionalHeaders":
 		headers := optionalHeaders(peFile)
 		result = headers
+	case "fileHeader":
+		result = theFile(peFile)
+	case "coffSymbols":
+		result = coffNums(peFile)
+	case "machine":
+		result = machine(peFile)
+	case "stringTable":
+		result = strings(peFile)
+	case "time":
+		result = dates(peFile)
+	case "dwarf":
+		result = dwarf(peFile)
+	case "pointerSymTables":
+		result = pointerSymTables(peFile)
+	case "characteristics":
+		result = Characteristics(peFile)
 	default:
-		fmt.Println("Unknown command. Valid commands are: lib, sym, sections, info, optionalHeaders")
+		fmt.Println("Unknown command. Valid commands are: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, timeDateStamp, dwarf, pointerSymTables, characteristics")
 		return
 	}
 
