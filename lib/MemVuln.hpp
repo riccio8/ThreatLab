@@ -1,3 +1,9 @@
+/*
+ * Copyright 2023-2024 Riccardo Adami. All rights reserved.
+ * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
+ */
+
+
 #ifndef MemVuln
 #define MemVuln
 
