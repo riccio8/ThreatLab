@@ -1,3 +1,10 @@
+;-----------------------------------------------------
+; Copyright 2023-2024 Riccardo Adami. All rights reserved.
+; License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
+;-----------------------------------------------------
+
+
+
 BITS 64                 ; Define the target architecture as 64-bit
 default rel            ; Set default addressing mode to RIP-relative
 
