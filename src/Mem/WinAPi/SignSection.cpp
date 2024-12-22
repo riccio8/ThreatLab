@@ -1,3 +1,10 @@
+/*
+ * Copyright 2023-2024 Riccardo Adami. All rights reserved.
+ * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
+ */
+
+
+
 // it will print the signature if found and the number of section, like .data, .text, .bss and so on i'll add another program that will print the export table and import table, the signature and the section
 
 #include <windows.h>
