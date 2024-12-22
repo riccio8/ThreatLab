@@ -2,7 +2,7 @@
 
 # Offensive & Defensive Tools Repository
 
-![Golang](https://img.shields.io/badge/Golang-Tools-00ADD8?style=flat&logo=go) [![CodeQL Advanced](https://github.com/riccio8/Offensive-defensive-tools/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/riccio8/Offensive-defensive-tools/actions/workflows/codeql.yml) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-yellow)
+![Golang](https://img.shields.io/badge/Golang-Tools-00ADD8?style=flat&logo=go) [![CodeQL Advanced](https://github.com/riccio8/Offensive-defensive-tools/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/riccio8/Offensive-defensive-tools/actions/workflows/codeql.yml) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue)
 
 ## **Overview**
 
