@@ -60,7 +60,7 @@ func machine(f *pe.File) any {
     return f.Machine 
 }
 
-func strings(f *pe.File) any {
+func stringsTable(f *pe.File) any {
 	return f.StringTable
 }
 
@@ -86,6 +86,39 @@ func Characteristics(f *pe.File) any {
 
 
 
+func strings(f *pe.File) ([]string, error) {
+	var strTable []string
+
+
+	for _, section := range f.Sections {
+		if section.Name == ".strtab" {  // tipic name
+			data, err := section.Data()  
+			if err != nil {
+				return nil, err
+			}
+			start := 0
+			for start < len(data) {
+				end := start
+				//(null terminator)
+				for end < len(data) && data[end] != 0 {
+					end++
+				}
+				if end > start {
+					strTable = append(strTable, string(data[start:end]))
+				}
+				// next block
+				start = end + 1
+			}
+			break
+		}
+	}
+
+	if len(strTable) == 0 {
+		return nil, fmt.Errorf("no string table found")
+	}
+	return strTable, nil
+}
+
 
 
 func prettyPrintJSON(v interface{}) {
@@ -98,10 +131,46 @@ func prettyPrintJSON(v interface{}) {
 	fmt.Println(string(data))
 }
 
+
+func help() {
+	// ANSI color codes
+	reset := "\033[0m"
+	red := "\033[31m"
+	green := "\033[32m"
+	yellow := "\033[33m"
+	blue := "\033[34m"
+	cyan := "\033[36m"
+
+	fmt.Printf("%sUsage:%s\n", yellow, reset)
+	fmt.Printf("  %s<tool_name>%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
+
+	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
+	fmt.Printf("  %slib%s               - List libraries required by the PE file.\n", green, reset)
+	fmt.Printf("  %ssym%s               - Display symbols table.\n", green, reset)
+	fmt.Printf("  %ssections%s          - Show details of a specific section (use with [sectionName]).\n", green, reset)
+	fmt.Printf("  %sinfo%s              - Display basic information about the PE file.\n", green, reset)
+	fmt.Printf("  %soptionalHeaders%s   - Show the optional headers of the PE file.\n", green, reset)
+	fmt.Printf("  %sfileHeader%s        - Display the PE file header.\n", green, reset)
+	fmt.Printf("  %scoffSymbols%s       - Display COFF symbols.\n", green, reset)
+	fmt.Printf("  %smachine%s           - Show the target machine type.\n", green, reset)
+	fmt.Printf("  %sstringTable%s       - Display the string table.\n", green, reset)
+	fmt.Printf("  %stime%s              - Show the timestamp of the PE file.\n", green, reset)
+	fmt.Printf("  %sdwarf%s             - Extract DWARF debug data (if available).\n", green, reset)
+	fmt.Printf("  %spointerSymTables%s  - Show pointers to symbol tables.\n", green, reset)
+	fmt.Printf("  %scharacteristics%s   - Display characteristics of the PE file.\n", green, reset)
+	fmt.Printf("  %sstring%s            - Extract strings from the PE file.\n", green, reset)
+
+	fmt.Printf("\n%sExample:%s\n", yellow, reset)
+	fmt.Printf("  %s./peutils.exe%s %smyfile.exe%s %sinfo%s\n", cyan, reset, green, reset, red, reset)
+	fmt.Printf("  %s./peutils.exe%s %smyfile.exe%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+
+	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation or PE specification.\n", yellow, reset)
+	fmt.Printf("  %shttps://learn.microsoft.com/en-us/windows/win32/debug/pe-format%s\n", cyan, reset)
+}
+
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: peutils.exe <file> <command> [sectionName]")
-		fmt.Println("Commands: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, time, dwarf, pointerSymTables, characteristics")
+		help()
 		return
 	}
 
@@ -159,7 +228,7 @@ func main() {
 	case "machine":
 		result = machine(peFile)
 	case "stringTable":
-		result = strings(peFile)
+		result = stringsTable(peFile)
 	case "time":
 		result = dates(peFile)
 	case "dwarf":
@@ -168,10 +237,21 @@ func main() {
 		result = pointerSymTables(peFile)
 	case "characteristics":
 		result = Characteristics(peFile)
+	case "string":
+		result, err = strings(peFile)
+		if err!= nil {
+            fmt.Printf("Error fetching strings: %v\n", err)
+            return
+        }
 	default:
 		fmt.Println("Unknown command. Valid commands are: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, timeDateStamp, dwarf, pointerSymTables, characteristics")
+		help()
 		return
 	}
+
+	// Pretty print the result in JSON format
+	prettyPrintJSON(result)
+}
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
