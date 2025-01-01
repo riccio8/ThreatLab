@@ -8,6 +8,7 @@
 package main
 
 import (
+	"debug/dwarf"
 	"debug/elf"
 	"encoding/json"
 	"fmt"
@@ -22,7 +23,15 @@ func load(fileName string) (*elf.File, error) {
 	return file, nil
 }
 
-func sections(f *elf.File) any{
+func DWARF(f *elf.File) (*dwarf.Data, error) {
+	data, err := f.DWARF() 
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func sections(f *elf.File) any {
 	return f.Sections
 }
 
@@ -37,7 +46,6 @@ func symbolTable(f *elf.File) (any, error) {
 func lib(f *elf.File) (any, error) {
 	return f.ImportedLibraries()
 }
-
 
 func class(f *elf.File) string {
 	return f.Class.String()
@@ -65,14 +73,12 @@ func headers(f *elf.File) any {
 	for _, progHeader := range f.Progs {
 		return fmt.Sprintf("Type: %v, Offset: 0x%x, Virtual Address: 0x%x\n", progHeader.Type, progHeader.Off, progHeader.Vaddr, progHeader.ProgHeader, progHeader.Flags, progHeader.Memsz, progHeader.Filesz)
 	}
-	return f.Progs 
+	return f.Progs
 }
-
 
 func fileHeader(f *elf.File) any {
-    return f.FileHeader
+	return f.FileHeader
 }
-
 
 func stringTable(f *elf.File) *elf.Section {
 	return f.Section(".strtab")
@@ -81,13 +87,13 @@ func stringTable(f *elf.File) *elf.Section {
 func dynamicSymbols(f *elf.File) ([]elf.Symbol, error) {
 	symbols, err := f.DynamicSymbols()
 	if err != nil {
-	
+
 		return nil, err
 	}
 	return symbols, nil
 }
 
-func relocs(f *elf.File) *elf.Section{
+func relocs(f *elf.File) *elf.Section {
 	return f.Section(".strtab")
 }
 
@@ -99,11 +105,15 @@ func sectionsInfo(f *elf.File) []string {
 	return sectionsInfo
 }
 
-func ImportedSymbols(f *elf.File) any{
-	return f.ImportedSymbols
+func ImportedSymbols(f *elf.File) (any, error) {
+	sym, err := f.ImportedSymbols()
+	if err!= nil {
+        return nil, err
+    }
+    return sym, nil
 }
 
-func symbols(f *elf.File) any{
+func symbols(f *elf.File) any {
 	sym, err := f.Symbols()
 	if err != nil {
 		fmt.Println("Error while getting data", err)
@@ -120,7 +130,6 @@ func symbols(f *elf.File) any{
 	return nil
 }
 
-
 func prettyPrintJSON(v interface{}) {
 	// Format the result as JSON with indentation for pretty printing
 	data, err := json.MarshalIndent(v, "", "  ")
@@ -131,10 +140,47 @@ func prettyPrintJSON(v interface{}) {
 	fmt.Println(string(data))
 }
 
+
+func help() {
+	// ANSI color codes
+	reset := "\033[0m"
+	red := "\033[31m"
+	green := "\033[32m"
+	yellow := "\033[33m"
+	blue := "\033[34m"
+	cyan := "\033[36m"
+
+	fmt.Printf("%sUsage:%s\n", yellow, reset)
+	fmt.Printf("  %s<tool_name>%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
+
+	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
+	fmt.Printf("  %ssections%s       - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
+	fmt.Printf("  %ssym%s            - List the symbol table.\n", green, reset)
+	fmt.Printf("  %sclass%s          - Show the ELF class (e.g., 32-bit, 64-bit).\n", green, reset)
+	fmt.Printf("  %ssymbols%s        - Show all symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %sdwarf%s          - Extract DWARF debug data.\n", green, reset)
+	fmt.Printf("  %smachine%s        - Display machine architecture details.\n", green, reset)
+	fmt.Printf("  %sentryPoint%s     - Show the program's entry point address.\n", green, reset)
+	fmt.Printf("  %sfileHeader%s     - Display the ELF file header.\n", green, reset)
+	fmt.Printf("  %sheaders%s        - Show all headers in the ELF file.\n", green, reset)
+	fmt.Printf("  %simportSym%s      - List imported symbols.\n", green, reset)
+	fmt.Printf("  %sstringTable%s    - Show the string table.\n", green, reset)
+	fmt.Printf("  %slib%s            - List dynamic libraries required by the ELF file.\n", green, reset)
+	fmt.Printf("  %sdynamicSymbols%s - Show dynamic symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %srelocs%s         - List relocation entries.\n", green, reset)
+	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
+
+	fmt.Printf("\n%sExample:%s\n", yellow, reset)
+	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
+	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+
+	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
+	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
+}
+
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: elfutils.exe <file> <command> [sectionName]")
-		fmt.Println("Commands: lib, sections, sym, class, symbols, headers, machine, entryPoint, importSym, fileHeader, stringTable, dynamicSymbols, relocs, sectionsInfo")
+		help()
 		return
 	}
 
@@ -177,7 +223,13 @@ func main() {
 		result = class(elfFile)
 	case "symbols":
 		result = symbols(elfFile)
-	case "machine": 
+	case "dwarf":
+		result, err = DWARF(elfFile)
+		if err!= nil {
+            fmt.Printf("Error fetching DWARF data: %v\n", err)
+            return
+        }
+	case "machine":
 		result = machine(elfFile)
 		fmt.Sprintln("for further infos look at: https://pkg.go.dev/debug/elf#Machine")
 	case "entryPoint":
@@ -187,11 +239,19 @@ func main() {
 	case "headers":
 		result = headers(elfFile)
 	case "importSym":
-		result = ImportedSymbols(elfFile)
+		result, err = ImportedSymbols(elfFile)
+		if err!= nil {
+            fmt.Printf("Error fetching imported symbols: %v\n", err)
+            return
+        }
 	case "stringTable":
 		result = stringTable(elfFile)
 	case "lib":
-		result = lib(elfFile)
+		result, err = lib(elfFile)
+		if err != nil {
+			fmt.Printf("Error fetching libraries: %v\n", err)
+			return
+		}
 	case "dynamicSymbols":
 		symbols, err := dynamicSymbols(elfFile)
 		if err != nil {
@@ -204,7 +264,8 @@ func main() {
 	case "sectionsInfo":
 		result = sectionsInfo(elfFile)
 	default:
-		fmt.Println("Unknown command. Valid commands are: sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, sectionsInfo")
+		fmt.Println("Unknown command. Valid commands are: dwarf, lib, sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, sectionsInfo")
+		help()
 		return
 	}
 
