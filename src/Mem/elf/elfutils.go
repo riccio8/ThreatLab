@@ -34,6 +34,11 @@ func symbolTable(f *elf.File) (any, error) {
 	return symbols, nil
 }
 
+func lib(f *elf.File) (any, error) {
+	return f.ImportedLibraries()
+}
+
+
 func class(f *elf.File) string {
 	return f.Class.String()
 }
@@ -129,7 +134,7 @@ func prettyPrintJSON(v interface{}) {
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Usage: elfutils.exe <file> <command> [sectionName]")
-		fmt.Println("Commands: sections, sym, class, symbols, headers, machine, entryPoint, importSym, fileHeader, stringTable, dynamicSymbols, relocs, sectionsInfo")
+		fmt.Println("Commands: lib, sections, sym, class, symbols, headers, machine, entryPoint, importSym, fileHeader, stringTable, dynamicSymbols, relocs, sectionsInfo")
 		return
 	}
 
@@ -185,6 +190,8 @@ func main() {
 		result = ImportedSymbols(elfFile)
 	case "stringTable":
 		result = stringTable(elfFile)
+	case "lib":
+		result = lib(elfFile)
 	case "dynamicSymbols":
 		symbols, err := dynamicSymbols(elfFile)
 		if err != nil {
