@@ -2,7 +2,8 @@
  * Copyright 2023-2024 Riccardo Adami. All rights reserved.
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
-
+ 
+ 
 
 package main
 
@@ -180,7 +181,7 @@ func help() {
 	cyan := "\033[36m"
 
 	fmt.Printf("%sUsage:%s\n", yellow, reset)
-	fmt.Printf("  %s<tool_name>%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("  %selfutils(.exe)%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
 
 	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
 	fmt.Printf("  %ssections%s       - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
