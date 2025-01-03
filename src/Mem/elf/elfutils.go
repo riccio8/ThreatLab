@@ -4,7 +4,6 @@
  */
 
 
-
 package main
 
 import (
@@ -201,7 +200,7 @@ func help() {
 	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
 	fmt.Printf("  %sstrings-info%s   - List string-based dynamic tags.\n", green, reset)
 	fmt.Printf("  %svalues-info%s    - List numeric-based dynamic tags.\n", green, reset)
-	fmt.Printf("  %file%s            - Returns some general infos abt the file.\n", green, reset)
+	fmt.Printf("  %sfile%s            - Returns some general infos abt the file.\n", green, reset)
 
 	fmt.Printf("\n%sExample:%s\n", yellow, reset)
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
@@ -356,4 +355,16 @@ func main() {
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
+
+	file, err := os.Create(fileName+".json")
+	if err!= nil {
+        panic(err)
+    }
+    defer file.Close()
+    
+    bs, err := json.MarshalIndent(result, "", "  ")
+    if err != nil {
+        panic(err)
+	}
+    file.Write(bs)
 }
