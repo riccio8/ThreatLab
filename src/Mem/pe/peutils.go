@@ -3,7 +3,7 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
-
+ 
 package main
 
 import (
@@ -251,8 +251,16 @@ func main() {
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-}
-
-	// Pretty print the result in JSON format
-	prettyPrintJSON(result)
+	
+	file, err := os.Create(fileName+".json")
+	if err!= nil {
+            panic(err)
+   	 }
+   	 defer file.Close()
+    
+	bs, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+	    panic(err)
+	}
+	file.Write(bs)
 }
