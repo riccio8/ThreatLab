@@ -6,7 +6,7 @@
 
 
 /*
-This file is for check
+This file is for check, it's just a sample
 */
 
 #include <iostream>
