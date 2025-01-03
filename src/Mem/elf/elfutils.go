@@ -2,8 +2,8 @@
  * Copyright 2023-2024 Riccardo Adami. All rights reserved.
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
- 
- 
+
+
 
 package main
 
@@ -15,7 +15,6 @@ import (
 	"os"
 )
 
-
 func load(fileName string) (*elf.File, error) {
 	file, err := elf.Open(fileName)
 	if err != nil {
@@ -25,13 +24,12 @@ func load(fileName string) (*elf.File, error) {
 }
 
 func DWARF(f *elf.File) (*dwarf.Data, error) {
-	data, err := f.DWARF() 
+	data, err := f.DWARF()
 	if err != nil {
 		return nil, err
 	}
 	return data, nil
 }
-
 
 func processStringTags(elfFile *elf.File, tags []elf.DynTag) []any {
 
@@ -46,7 +44,6 @@ func processStringTags(elfFile *elf.File, tags []elf.DynTag) []any {
 	}
 	return results
 }
-
 
 func processValueTags(elfFile *elf.File, tags []elf.DynTag) []any {
 	var results []any
@@ -137,10 +134,10 @@ func sectionsInfo(f *elf.File) []string {
 
 func ImportedSymbols(f *elf.File) (any, error) {
 	sym, err := f.ImportedSymbols()
-	if err!= nil {
-        return nil, err
-    }
-    return sym, nil
+	if err != nil {
+		return nil, err
+	}
+	return sym, nil
 }
 
 func symbols(f *elf.File) any {
@@ -160,6 +157,10 @@ func symbols(f *elf.File) any {
 	return nil
 }
 
+func file(f *elf.File) any {
+	return f.FileHeader
+}
+
 func prettyPrintJSON(v interface{}) {
 	// Format the result as JSON with indentation for pretty printing
 	data, err := json.MarshalIndent(v, "", "  ")
@@ -169,7 +170,6 @@ func prettyPrintJSON(v interface{}) {
 	}
 	fmt.Println(string(data))
 }
-
 
 func help() {
 	// ANSI color codes
@@ -201,6 +201,7 @@ func help() {
 	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
 	fmt.Printf("  %sstrings-info%s   - List string-based dynamic tags.\n", green, reset)
 	fmt.Printf("  %svalues-info%s    - List numeric-based dynamic tags.\n", green, reset)
+	fmt.Printf("  %file%s            - Returns some general infos abt the file.\n", green, reset)
 
 	fmt.Printf("\n%sExample:%s\n", yellow, reset)
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
@@ -215,7 +216,7 @@ func main() {
 		help()
 		return
 	}
-	
+
 	valueTags := []elf.DynTag{
 		elf.DT_PLTRELSZ, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_INIT,
 		elf.DT_FINI, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_GNU_HASH,
@@ -253,11 +254,10 @@ func main() {
 		elf.DT_PPC64_GLINK, elf.DT_PPC64_OPD, elf.DT_PPC64_OPDSZ, elf.DT_PPC64_OPT, elf.DT_SPARC_REGISTER,
 		elf.DT_AUXILIARY, elf.DT_USED, elf.DT_FILTER, elf.DT_HIPROC,
 	}
-	
-	
+
 	stringTags := []elf.DynTag{
 		elf.DT_NEEDED, elf.DT_SONAME, elf.DT_RPATH, elf.DT_RUNPATH,
-	}	
+	}
 
 	fileName := os.Args[1]
 	command := os.Args[2]
@@ -300,10 +300,10 @@ func main() {
 		result = symbols(elfFile)
 	case "dwarf":
 		result, err = DWARF(elfFile)
-		if err!= nil {
-            fmt.Printf("Error fetching DWARF data: %v\n", err)
-            return
-        }
+		if err != nil {
+			fmt.Printf("Error fetching DWARF data: %v\n", err)
+			return
+		}
 	case "machine":
 		result = machine(elfFile)
 		fmt.Sprintln("for further infos look at: https://pkg.go.dev/debug/elf#Machine")
@@ -315,10 +315,10 @@ func main() {
 		result = headers(elfFile)
 	case "importSym":
 		result, err = ImportedSymbols(elfFile)
-		if err!= nil {
-            fmt.Printf("Error fetching imported symbols: %v\n", err)
-            return
-        }
+		if err != nil {
+			fmt.Printf("Error fetching imported symbols: %v\n", err)
+			return
+		}
 	case "stringTable":
 		result = stringTable(elfFile)
 	case "lib":
@@ -338,13 +338,16 @@ func main() {
 		result = relocs(elfFile)
 	case "sectionsInfo":
 		result = sectionsInfo(elfFile)
-		
+
 	case "strings-info":
 		result = processStringTags(elfFile, stringTags)
-		
+
 	case "values-info":
 		result = processValueTags(elfFile, valueTags)
-	
+
+	case "file":
+		result = file(elfFile)
+
 	default:
 		fmt.Println("Unknown command. Valid commands are: dwarf, lib, sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, strings-info, sectionsInfo, values-info")
 		help()
