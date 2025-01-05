@@ -3,7 +3,6 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
- 
 package main
 
 import (
@@ -11,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 )
 
 func load(fileName string) (*pe.File, error) {
@@ -57,7 +57,7 @@ func coffNums(f *pe.File) any {
 }
 
 func machine(f *pe.File) any {
-    return f.Machine 
+	return f.Machine
 }
 
 func stringsTable(f *pe.File) any {
@@ -81,18 +81,15 @@ func pointerSymTables(f *pe.File) any {
 }
 
 func Characteristics(f *pe.File) any {
-    return f.Characteristics
+	return f.Characteristics
 }
-
-
 
 func strings(f *pe.File) ([]string, error) {
 	var strTable []string
 
-
 	for _, section := range f.Sections {
-		if section.Name == ".strtab" {  // tipic name
-			data, err := section.Data()  
+		if section.Name == ".strtab" { // tipic name
+			data, err := section.Data()
 			if err != nil {
 				return nil, err
 			}
@@ -119,8 +116,6 @@ func strings(f *pe.File) ([]string, error) {
 	return strTable, nil
 }
 
-
-
 func prettyPrintJSON(v interface{}) {
 	// Format the result as JSON with indentation for pretty printing
 	data, err := json.MarshalIndent(v, "", "  ")
@@ -130,7 +125,6 @@ func prettyPrintJSON(v interface{}) {
 	}
 	fmt.Println(string(data))
 }
-
 
 func help() {
 	// ANSI color codes
@@ -239,10 +233,10 @@ func main() {
 		result = Characteristics(peFile)
 	case "string":
 		result, err = strings(peFile)
-		if err!= nil {
-            fmt.Printf("Error fetching strings: %v\n", err)
-            return
-        }
+		if err != nil {
+			fmt.Printf("Error fetching strings: %v\n", err)
+			return
+		}
 	default:
 		fmt.Println("Unknown command. Valid commands are: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, timeDateStamp, dwarf, pointerSymTables, characteristics")
 		help()
@@ -251,16 +245,40 @@ func main() {
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-	
-	file, err := os.Create(fileName+".json")
-	if err!= nil {
-            panic(err)
-   	 }
-   	 defer file.Close()
-    
-	bs, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-	    panic(err)
+
+	so := runtime.GOOS
+
+	if so == "linux" {
+		file, err := os.Create("/var/log/" + fileName + ".json")
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+		bs, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		file.Write(bs)
+		fmt.Println("Logged successfully at /var/log/", fileName+".json")
+
+	} else if so == "windows" {
+
+		file, err := os.Create(fileName + ".json")
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		bs, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		file.Write(bs)
+		fmt.Println("logged successfully in the current directory")
+
+	} else {
+		fmt.Println("Unsupported operating system for logging.")
+		return
 	}
-	file.Write(bs)
+
 }
