@@ -4,7 +4,6 @@
  */
 
 
-
 package main
 
 import (
@@ -12,6 +11,7 @@ import (
 	"debug/elf"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"os"
 )
 
@@ -356,16 +356,41 @@ func main() {
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-
-	file, err := os.Create(fileName+".json")
-	if err!= nil {
-        panic(err)
-    }
-    defer file.Close()
-    
-    bs, err := json.MarshalIndent(result, "", "  ")
-    if err != nil {
-        panic(err)
+	
+	so := runtime.GOOS
+	
+	if so == "linux" {
+		file, err := os.Create("/var/log/"+fileName+".json")
+		if err!= nil {
+	        panic(err)
+	    }
+	    defer file.Close()
+		bs, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		file.Write(bs)
+		fmt.Println("Logged successfully at /var/log/", fileName+".json")
+		
+		} else if so == "windows"{
+		
+		file, err := os.Create(fileName+".json")
+		if err!= nil {
+	        panic(err)
+	    }
+	    defer file.Close()
+	    
+		bs, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		file.Write(bs)
+		fmt.Println("logged successfully in the current directory")
+		
+	} else{
+		fmt.Println("Unsupported operating system for logging.")
+        return
 	}
-    file.Write(bs)
+    
+
 }
