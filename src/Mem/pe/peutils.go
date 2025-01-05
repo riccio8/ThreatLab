@@ -136,31 +136,39 @@ func help() {
 	cyan := "\033[36m"
 
 	fmt.Printf("%sUsage:%s\n", yellow, reset)
-	fmt.Printf("  %s<tool_name>%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("  %selfutils(.exe)%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
 
 	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
-	fmt.Printf("  %slib%s               - List libraries required by the PE file.\n", green, reset)
-	fmt.Printf("  %ssym%s               - Display symbols table.\n", green, reset)
-	fmt.Printf("  %ssections%s          - Show details of a specific section (use with [sectionName]).\n", green, reset)
-	fmt.Printf("  %sinfo%s              - Display basic information about the PE file.\n", green, reset)
-	fmt.Printf("  %soptionalHeaders%s   - Show the optional headers of the PE file.\n", green, reset)
-	fmt.Printf("  %sfileHeader%s        - Display the PE file header.\n", green, reset)
-	fmt.Printf("  %scoffSymbols%s       - Display COFF symbols.\n", green, reset)
-	fmt.Printf("  %smachine%s           - Show the target machine type.\n", green, reset)
-	fmt.Printf("  %sstringTable%s       - Display the string table.\n", green, reset)
-	fmt.Printf("  %stime%s              - Show the timestamp of the PE file.\n", green, reset)
-	fmt.Printf("  %sdwarf%s             - Extract DWARF debug data (if available).\n", green, reset)
-	fmt.Printf("  %spointerSymTables%s  - Show pointers to symbol tables.\n", green, reset)
-	fmt.Printf("  %scharacteristics%s   - Display characteristics of the PE file.\n", green, reset)
-	fmt.Printf("  %sstring%s            - Extract strings from the PE file.\n", green, reset)
+	fmt.Printf("  %ssections%s       - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
+	fmt.Printf("  %ssym%s            - List the symbol table.\n", green, reset)
+	fmt.Printf("  %sclass%s          - Show the ELF class (e.g., 32-bit, 64-bit).\n", green, reset)
+	fmt.Printf("  %ssymbols%s        - Show all symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %sdwarf%s          - Extract DWARF debug data.\n", green, reset)
+	fmt.Printf("  %smachine%s        - Display machine architecture details.\n", green, reset)
+	fmt.Printf("  %sentryPoint%s     - Show the program's entry point address.\n", green, reset)
+	fmt.Printf("  %sfileHeader%s     - Display the ELF file header.\n", green, reset)
+	fmt.Printf("  %sheaders%s        - Show all headers in the ELF file.\n", green, reset)
+	fmt.Printf("  %simportSym%s      - List imported symbols.\n", green, reset)
+	fmt.Printf("  %sstringTable%s    - Show the string table.\n", green, reset)
+	fmt.Printf("  %slib%s            - List dynamic libraries required by the ELF file.\n", green, reset)
+	fmt.Printf("  %sdynamicSymbols%s - Show dynamic symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %srelocs%s         - List relocation entries.\n", green, reset)
+	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
+	fmt.Printf("  %sstrings-info%s   - List string-based dynamic tags.\n", green, reset)
+	fmt.Printf("  %svalues-info%s    - List numeric-based dynamic tags.\n", green, reset)
+	fmt.Printf("  %sfile%s            - Returns some general infos abt the file.\n", green, reset)
 
 	fmt.Printf("\n%sExample:%s\n", yellow, reset)
-	fmt.Printf("  %s./peutils.exe%s %smyfile.exe%s %sinfo%s\n", cyan, reset, green, reset, red, reset)
-	fmt.Printf("  %s./peutils.exe%s %smyfile.exe%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
+	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
 
-	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation or PE specification.\n", yellow, reset)
-	fmt.Printf("  %shttps://learn.microsoft.com/en-us/windows/win32/debug/pe-format%s\n", cyan, reset)
+	fmt.Printf("\n%sNote:%s The program will log the output of the command in a file .json, till now it will overwrite the previous content\n", yellow, reset)
+	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
+	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
+	
+	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
 }
+
 
 func main() {
 	if len(os.Args) < 3 {
