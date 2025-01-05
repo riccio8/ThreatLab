@@ -207,8 +207,11 @@ func help() {
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
 
+	fmt.Printf("\n%sNote:%s The program will log the output of the command in a file .json, till now it will overwrite the previous content\n", yellow, reset)
 	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
 	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
+	
+	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
 }
 
 func main() {
@@ -392,5 +395,4 @@ func main() {
         return
 	}
     
-
 }
