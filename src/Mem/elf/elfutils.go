@@ -394,5 +394,5 @@ func main() {
 		fmt.Println("Unsupported operating system for logging.")
         return
 	}
-    
+    // need to add 1: type of save (xml, yml, json(default)) 2: more then one single command, like elfutils -v -r > file.txt
 }
