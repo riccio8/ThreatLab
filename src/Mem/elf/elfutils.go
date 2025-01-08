@@ -3,16 +3,18 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
-
 package main
 
 import (
 	"debug/dwarf"
 	"debug/elf"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
-	"runtime"
 	"os"
+	"runtime"
+
+	"gopkg.in/yaml.v3"
 )
 
 func load(fileName string) (*elf.File, error) {
@@ -32,6 +34,7 @@ func DWARF(f *elf.File) (*dwarf.Data, error) {
 }
 
 func processStringTags(elfFile *elf.File, tags []elf.DynTag) []any {
+
 	var results []any
 	for _, tag := range tags {
 		values, err := elfFile.DynString(tag)
@@ -160,6 +163,31 @@ func file(f *elf.File) any {
 	return f.FileHeader
 }
 
+func saveResult(fileName string, result interface{}, format string) error {
+	switch format {
+	case "json":
+		data, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(fileName+".json", data, 0644)
+	case "xml":
+		data, err := xml.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(fileName+".xml", data, 0644)
+	case "yaml":
+		data, err := yaml.Marshal(result)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(fileName+".yaml", data, 0644)
+	default:
+		return fmt.Errorf("unsupported format: %s", format)
+	}
+}
+
 func prettyPrintJSON(v interface{}) {
 	// Format the result as JSON with indentation for pretty printing
 	data, err := json.MarshalIndent(v, "", "  ")
@@ -209,7 +237,7 @@ func help() {
 	fmt.Printf("\n%sNote:%s The program will log the output of the command in a file .json, till now it will overwrite the previous content\n", yellow, reset)
 	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
 	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
-	
+
 	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
 }
 
@@ -276,6 +304,7 @@ func main() {
 	defer elfFile.Close()
 
 	var result interface{}
+
 	switch command {
 	case "sections":
 		if sectionName == "" {
@@ -358,41 +387,40 @@ func main() {
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-	
+
 	so := runtime.GOOS
-	
+
 	if so == "linux" {
-		file, err := os.Create("/var/log/"+fileName+".json")
-		if err!= nil {
-	        panic(err)
-	    }
-	    defer file.Close()
+		file, err := os.Create("/var/log/" + fileName + ".json")
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
 		bs, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			panic(err)
 		}
 		file.Write(bs)
 		fmt.Println("Logged successfully at /var/log/", fileName+".json")
-		
-		} else if so == "windows"{
-		
-		file, err := os.Create(fileName+".json")
-		if err!= nil {
-	        panic(err)
-	    }
-	    defer file.Close()
-	    
+
+	} else if so == "windows" {
+
+		file, err := os.Create(fileName + ".json")
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
 		bs, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			panic(err)
 		}
 		file.Write(bs)
 		fmt.Println("logged successfully in the current directory")
-		
-	} else{
+
+	} else {
 		fmt.Println("Unsupported operating system for logging.")
-        return
+		return
 	}
-    // need to add 1: type of save (xml, yml, json(default)) 2: more then one single command, like elfutils -v -r > file.txt
-	
+
 }
