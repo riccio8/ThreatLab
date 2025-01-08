@@ -32,7 +32,6 @@ func DWARF(f *elf.File) (*dwarf.Data, error) {
 }
 
 func processStringTags(elfFile *elf.File, tags []elf.DynTag) []any {
-
 	var results []any
 	for _, tag := range tags {
 		values, err := elfFile.DynString(tag)
