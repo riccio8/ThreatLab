@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -191,7 +190,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".json")
+			fmt.Println("Logged successfully at current directory: ", fileName+".json")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -221,7 +220,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".xml")
+			fmt.Println("Logged successfully at current directory: ", fileName+".xml")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -251,7 +250,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".yaml")
+			fmt.Println("Logged successfully at current directory: ", fileName+".yaml")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -325,9 +324,9 @@ func main() {
 		help()
 		return
 	}
-	
+
 	var result interface{}
-	
+
 	valueTags := []elf.DynTag{
 		elf.DT_PLTRELSZ, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_INIT,
 		elf.DT_FINI, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_GNU_HASH,
@@ -368,15 +367,15 @@ func main() {
 
 	stringTags := []elf.DynTag{
 		elf.DT_NEEDED, elf.DT_SONAME, elf.DT_RPATH, elf.DT_RUNPATH,
-	}   
-	
+	}
+
 	logEnabled := false
 	logFormat := ""
-	
+
 	fileName := os.Args[1]
 	command := os.Args[2]
 	sectionName := ""
-	if command == "-s"{
+	if command == "-s" {
 		sectionName = os.Args[3]
 	}
 
@@ -386,8 +385,6 @@ func main() {
 		panic(err)
 	}
 	defer elfFile.Close()
-
-
 
 	switch command {
 	case "-s":
@@ -433,7 +430,7 @@ func main() {
 		result, err = ImportedSymbols(elfFile)
 		if err != nil {
 			panic(err)
-			
+
 		}
 	case "-st":
 		result = stringTable(elfFile)
@@ -468,20 +465,9 @@ func main() {
 		fmt.Println("Unknown command. Valid commands are: dwarf, lib, sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, strings-info, sectionsInfo, values-info")
 		help()
 	}
-	
-	for i := 1; i < len(os.Args)-1; i++ {
-		if os.Args[i] == "--log" {
-			logFormat := strings.ToLower(os.Args[i+1])
-			_, err := saveResult(os.Args[1], result, logFormat)
-			if err!= nil {
-                    continue
-            }
-		}
-	}
-	
+
 	for i := 3; i < len(os.Args); i++ {
 		arg := os.Args[i]
-		fmt.Print(arg)
 		if arg == "--log" {
 			logEnabled = true
 			if i+1 < len(os.Args) {
@@ -493,7 +479,7 @@ func main() {
 			}
 		}
 	}
-	
+
 	if logEnabled {
 		if logFormat == "" {
 			panic("Error:  File type, json, xml or yaml")
@@ -504,8 +490,7 @@ func main() {
 			panic(err)
 		}
 	}
-	
+
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
 }
-	
