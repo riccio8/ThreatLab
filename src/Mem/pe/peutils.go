@@ -156,7 +156,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".json")
+			fmt.Println("Logged successfully at current directory: ", fileName+".json")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -186,7 +186,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".xml")
+			fmt.Println("Logged successfully at current directory: ", fileName+".xml")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -216,7 +216,7 @@ func saveResult(fileName string, result interface{}, format string) (int, error)
 			}
 			defer file.Close()
 
-			fmt.Println("Logged successfully at current directory \t", fileName+".yaml")
+			fmt.Println("Logged successfully at current directory: ", fileName+".yaml")
 			return file.Write(data)
 		} else {
 			err = fmt.Errorf("Unsupported operating system for logging.")
@@ -238,38 +238,38 @@ func help() {
 	cyan := "\033[36m"
 
 	fmt.Printf("%sUsage:%s\n", yellow, reset)
-	fmt.Printf("  %selfutils(.exe)%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("  %speutils(.exe)%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
 
 	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
-	fmt.Printf("  %ssections%s       - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
-	fmt.Printf("  %ssym%s            - List the symbol table.\n", green, reset)
-	fmt.Printf("  %sclass%s          - Show the ELF class (e.g., 32-bit, 64-bit).\n", green, reset)
-	fmt.Printf("  %ssymbols%s        - Show all symbols in the ELF file.\n", green, reset)
-	fmt.Printf("  %sdwarf%s          - Extract DWARF debug data.\n", green, reset)
-	fmt.Printf("  %smachine%s        - Display machine architecture details.\n", green, reset)
-	fmt.Printf("  %sentryPoint%s     - Show the program's entry point address.\n", green, reset)
-	fmt.Printf("  %sfileHeader%s     - Display the ELF file header.\n", green, reset)
-	fmt.Printf("  %sheaders%s        - Show all headers in the ELF file.\n", green, reset)
-	fmt.Printf("  %simportSym%s      - List imported symbols.\n", green, reset)
-	fmt.Printf("  %sstringTable%s    - Show the string table.\n", green, reset)
-	fmt.Printf("  %slib%s            - List dynamic libraries required by the ELF file.\n", green, reset)
-	fmt.Printf("  %sdynamicSymbols%s - Show dynamic symbols in the ELF file.\n", green, reset)
-	fmt.Printf("  %srelocs%s         - List relocation entries.\n", green, reset)
-	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
-	fmt.Printf("  %sstrings-info%s   - List string-based dynamic tags.\n", green, reset)
-	fmt.Printf("  %svalues-info%s    - List numeric-based dynamic tags.\n", green, reset)
-	fmt.Printf("  %sfile%s            - Returns some general infos abt the file.\n", green, reset)
+	fmt.Printf("  %s-l%s             - List all imported libraries.\n", green, reset)
+	fmt.Printf("  %s-sy%s            - List all imported symbols.\n", green, reset)
+	fmt.Printf("  %s-s%s             - Display a specific section by name (use with [sectionName]).\n", green, reset)
+	fmt.Printf("  %s-i%s             - Display the PE file header.\n", green, reset)
+	fmt.Printf("  %s-oh%s            - Display the optional headers.\n", green, reset)
+	fmt.Printf("  %s-fh%s            - Display the file header (basic details about the PE file).\n", green, reset)
+	fmt.Printf("  %s-cs%s            - Display COFF symbols.\n", green, reset)
+	fmt.Printf("  %s-ma%s            - Display the machine architecture type.\n", green, reset)
+	fmt.Printf("  %s-sT%s            - Display the string table.\n", green, reset)
+	fmt.Printf("  %s-tm%s            - Display the timestamp of the PE file.\n", green, reset)
+	fmt.Printf("  %s-dw%s            - Extract and display DWARF debug data (if present).\n", green, reset)
+	fmt.Printf("  %s-ps%s            - Display the pointer to the symbol table.\n", green, reset)
+	fmt.Printf("  %s-ch%s            - Display the characteristics of the PE file.\n", green, reset)
+	fmt.Printf("  %s-st%s            - Extract and display strings from the `.strtab` section.\n", green, reset)
 
-	fmt.Printf("\n%sExample:%s\n", yellow, reset)
-	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
-	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("\n%sExamples:%s\n", yellow, reset)
+	fmt.Printf("  %speutils.exe%s %smyfile.exe%s %s-l%s\n", cyan, reset, green, reset, red, reset)
+	fmt.Printf("  %speutils.exe%s %smyfile.exe%s %s-s%s %s.text%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+	fmt.Printf("  %speutils.exe%s %smyfile.exe%s %s-sy%s\n", cyan, reset, green, reset, red, reset)
 
-	fmt.Printf("\n%sNote:%s The program will log the output of the command in a file .json, till now it will overwrite the previous content\n", yellow, reset)
-	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
-	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
-	
-	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
+	fmt.Printf("\n%sLogging:%s\n", yellow, reset)
+	fmt.Printf("  Use the %s--log%s flag to save the output to a file (supported formats: json, xml, yaml).\n", blue, reset)
+	fmt.Printf("  Example: %speutils.exe%s %smyfile.exe%s %s-l%s %s--log json%s\n", cyan, reset, green, reset, red, reset, blue, reset)
+
+	fmt.Printf("\n%sNote:%s The program will overwrite any existing log file in the same directory.\n", yellow, reset)
+	fmt.Printf("%sFor detailed documentation on PE file analysis, refer to:%s\n", yellow, reset)
+	fmt.Printf("  %shttps://pkg.go.dev/debug/pe%s\n", cyan, reset)
 }
+
 
 func main() {
 	if len(os.Args) < 3 {
@@ -283,7 +283,7 @@ func main() {
 	fileName := os.Args[1]
 	command := os.Args[2]
 	sectionName := ""
-	if command == "sections" && len(os.Args) >= 4 {
+	if command == "-s" {
 		sectionName = os.Args[3]
 	}
 
@@ -296,19 +296,19 @@ func main() {
 
 	var result interface{}
 	switch command {
-	case "lib":
+	case "-l":
 		libs, err := lib(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching libraries: %v\n", err)
 		}
 		result = libs
-	case "sym":
+	case "-sy":
 		symbols, err := sym(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching symbols: %v\n", err)
 		}
 		result = symbols
-	case "sections":
+	case "-s":
 		if sectionName == "" {
 			fmt.Println("Please specify a section name for the 'sections' command.")
 			return
@@ -318,29 +318,29 @@ func main() {
 			fmt.Printf("Section %s not found.\n", sectionName)
 		}
 		result = section
-	case "info":
+	case "-i":
 		header := info(peFile)
 		result = header
-	case "optionalHeaders":
+	case "-oh":
 		headers := optionalHeaders(peFile)
 		result = headers
-	case "fileHeader":
+	case "-fh":
 		result = theFile(peFile)
-	case "coffSymbols":
+	case "-cs":
 		result = coffNums(peFile)
-	case "machine":
+	case "-ma":
 		result = machine(peFile)
-	case "stringTable":
+	case "-sT":
 		result = stringsTable(peFile)
-	case "time":
+	case "-tm":
 		result = dates(peFile)
-	case "dwarf":
+	case "-dw":
 		result = dwarf(peFile)
-	case "pointerSymTables":
+	case "-ps":
 		result = pointerSymTables(peFile)
-	case "characteristics":
+	case "-ch":
 		result = Characteristics(peFile)
-	case "string":
+	case "-st":
 		result, err = stringss(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching strings: %v\n", err)
