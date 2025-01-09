@@ -8,9 +8,12 @@ package main
 import (
 	"debug/pe"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"os"
 	"runtime"
+
+	"gopkg.in/yaml.v3"
 )
 
 func load(fileName string) (*pe.File, error) {
@@ -84,7 +87,7 @@ func Characteristics(f *pe.File) any {
 	return f.Characteristics
 }
 
-func strings(f *pe.File) ([]string, error) {
+func stringss(f *pe.File) ([]string, error) {
 	var strTable []string
 
 	for _, section := range f.Sections {
@@ -124,6 +127,105 @@ func prettyPrintJSON(v interface{}) {
 		return
 	}
 	fmt.Println(string(data))
+}
+
+func saveResult(fileName string, result interface{}, format string) (int, error) {
+	so := runtime.GOOS
+
+	switch format {
+	case "json":
+		data, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return 0, err
+		}
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".json")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".json")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".json")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".json")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
+	case "xml":
+		data, err := xml.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return 0, err
+		}
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".xml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".xml")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".xml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".xml")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
+	case "yaml":
+		data, err := yaml.Marshal(result)
+		if err != nil {
+			return 0, err
+		}
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".yaml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".yaml")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".yaml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".yaml")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
+	default:
+		return 0, fmt.Errorf("unsupported format: %s", format)
+	}
 }
 
 func help() {
@@ -169,12 +271,14 @@ func help() {
 	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
 }
 
-
 func main() {
 	if len(os.Args) < 3 {
 		help()
 		return
 	}
+
+	logEnabled := false
+	logFormat := ""
 
 	fileName := os.Args[1]
 	command := os.Args[2]
@@ -196,14 +300,12 @@ func main() {
 		libs, err := lib(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching libraries: %v\n", err)
-			return
 		}
 		result = libs
 	case "sym":
 		symbols, err := sym(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching symbols: %v\n", err)
-			return
 		}
 		result = symbols
 	case "sections":
@@ -214,7 +316,6 @@ func main() {
 		section := sections(peFile, sectionName)
 		if section == nil {
 			fmt.Printf("Section %s not found.\n", sectionName)
-			return
 		}
 		result = section
 	case "info":
@@ -240,53 +341,40 @@ func main() {
 	case "characteristics":
 		result = Characteristics(peFile)
 	case "string":
-		result, err = strings(peFile)
+		result, err = stringss(peFile)
 		if err != nil {
 			fmt.Printf("Error fetching strings: %v\n", err)
-			return
 		}
 	default:
 		fmt.Println("Unknown command. Valid commands are: lib, sym, sections, info, optionalHeaders, fileHeader, coffSymbols, machine, stringTable, timeDateStamp, dwarf, pointerSymTables, characteristics")
 		help()
-		return
+	}
+
+	for i := 3; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		if arg == "--log" {
+			logEnabled = true
+			if i+1 < len(os.Args) {
+				logFormat = os.Args[i+1]
+				i++ // next arg
+			} else {
+				fmt.Println("Error: File type, json, xml or yaml")
+				panic("Error: File type, json, xml or yaml needed")
+			}
+		}
+	}
+
+	if logEnabled {
+		if logFormat == "" {
+			panic("Error:  File type, json, xml or yaml")
+		}
+		_, err := saveResult(fileName, result, logFormat)
+		if err != nil {
+			fmt.Printf("Error while saving log: %v\n", err)
+			panic(err)
+		}
 	}
 
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-
-	so := runtime.GOOS
-
-	if so == "linux" {
-		file, err := os.Create("/var/log/" + fileName + ".json")
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-		bs, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		file.Write(bs)
-		fmt.Println("Logged successfully at /var/log/", fileName+".json")
-
-	} else if so == "windows" {
-
-		file, err := os.Create(fileName + ".json")
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-
-		bs, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		file.Write(bs)
-		fmt.Println("logged successfully in the current directory")
-
-	} else {
-		fmt.Println("Unsupported operating system for logging.")
-		return
-	}
-
 }
