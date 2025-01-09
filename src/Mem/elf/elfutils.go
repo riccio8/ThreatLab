@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -163,28 +164,102 @@ func file(f *elf.File) any {
 	return f.FileHeader
 }
 
-func saveResult(fileName string, result interface{}, format string) error {
+func saveResult(fileName string, result interface{}, format string) (int, error) {
+	so := runtime.GOOS
+
 	switch format {
 	case "json":
 		data, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
-			return err
+			return 0, err
 		}
-		return os.WriteFile(fileName+".json", data, 0644)
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".json")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".json")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".json")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".json")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
 	case "xml":
 		data, err := xml.MarshalIndent(result, "", "  ")
 		if err != nil {
-			return err
+			return 0, err
 		}
-		return os.WriteFile(fileName+".xml", data, 0644)
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".xml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".xml")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".xml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".xml")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
 	case "yaml":
 		data, err := yaml.Marshal(result)
 		if err != nil {
-			return err
+			return 0, err
 		}
-		return os.WriteFile(fileName+".yaml", data, 0644)
+		if so == "linux" {
+			file, err := os.Create("/var/log/" + fileName + ".yaml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at /var/log/", fileName+".yaml")
+			return file.Write(data)
+
+		} else if so == "windows" {
+
+			file, err := os.Create(fileName + ".yaml")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			fmt.Println("Logged successfully at current directory \t", fileName+".yaml")
+			return file.Write(data)
+		} else {
+			err = fmt.Errorf("Unsupported operating system for logging.")
+			return 0, err
+		}
+
 	default:
-		return fmt.Errorf("unsupported format: %s", format)
+		return 0, fmt.Errorf("unsupported format: %s", format)
 	}
 }
 
@@ -211,24 +286,30 @@ func help() {
 	fmt.Printf("  %selfutils(.exe)%s %s<file>%s %s<command>%s [%s<sectionName>%s]\n", cyan, reset, green, reset, red, reset, blue, reset)
 
 	fmt.Printf("\n%sCommands:%s\n", yellow, reset)
-	fmt.Printf("  %ssections%s       - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
-	fmt.Printf("  %ssym%s            - List the symbol table.\n", green, reset)
-	fmt.Printf("  %sclass%s          - Show the ELF class (e.g., 32-bit, 64-bit).\n", green, reset)
-	fmt.Printf("  %ssymbols%s        - Show all symbols in the ELF file.\n", green, reset)
-	fmt.Printf("  %sdwarf%s          - Extract DWARF debug data.\n", green, reset)
-	fmt.Printf("  %smachine%s        - Display machine architecture details.\n", green, reset)
-	fmt.Printf("  %sentryPoint%s     - Show the program's entry point address.\n", green, reset)
-	fmt.Printf("  %sfileHeader%s     - Display the ELF file header.\n", green, reset)
-	fmt.Printf("  %sheaders%s        - Show all headers in the ELF file.\n", green, reset)
-	fmt.Printf("  %simportSym%s      - List imported symbols.\n", green, reset)
-	fmt.Printf("  %sstringTable%s    - Show the string table.\n", green, reset)
-	fmt.Printf("  %slib%s            - List dynamic libraries required by the ELF file.\n", green, reset)
-	fmt.Printf("  %sdynamicSymbols%s - Show dynamic symbols in the ELF file.\n", green, reset)
-	fmt.Printf("  %srelocs%s         - List relocation entries.\n", green, reset)
-	fmt.Printf("  %ssectionsInfo%s   - Display detailed section information.\n", green, reset)
-	fmt.Printf("  %sstrings-info%s   - List string-based dynamic tags.\n", green, reset)
-	fmt.Printf("  %svalues-info%s    - List numeric-based dynamic tags.\n", green, reset)
-	fmt.Printf("  %sfile%s            - Returns some general infos abt the file.\n", green, reset)
+	fmt.Printf("  %s-s%s              - List all sections or a specific section by name (use with [sectionName]).\n", green, reset)
+	fmt.Printf("  %s-t%s              - List the symbol table.\n", green, reset)
+	fmt.Printf("  %s-c%s              - Show the ELF class (e.g., 32-bit, 64-bit).\n", green, reset)
+	fmt.Printf("  %s-sy%s             - Show all symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %s-dw%s             - Extract DWARF debug data.\n", green, reset)
+	fmt.Printf("  %s-ma%s             - Display machine architecture details.\n", green, reset)
+	fmt.Printf("  %s-e%s              - Show the program's entry point address.\n", green, reset)
+	fmt.Printf("  %s-fh%s             - Display the ELF file header.\n", green, reset)
+	fmt.Printf("  %s-hs%s             - Show all headers in the ELF file.\n", green, reset)
+	fmt.Printf("  %s-is%s             - List imported symbols.\n", green, reset)
+	fmt.Printf("  %s-st%s             - Show the string table.\n", green, reset)
+	fmt.Printf("  %s-lb%s             - List dynamic libraries required by the ELF file.\n", green, reset)
+	fmt.Printf("  %s-ds%s             - Show dynamic symbols in the ELF file.\n", green, reset)
+	fmt.Printf("  %s-re%s             - List relocation entries.\n", green, reset)
+	fmt.Printf("  %s-si%s             - Display detailed section information.\n", green, reset)
+	fmt.Printf("  %s-ss%s             - List string-based dynamic tags.\n", green, reset)
+	fmt.Printf("  %s-vs%s             - List numeric-based dynamic tags.\n", green, reset)
+	fmt.Printf("  %s-fi%s             - Returns some general infos about the file.\n", green, reset)
+
+	fmt.Printf("\n%sLog options:%s\n", yellow, reset)
+	fmt.Printf("  %s--json%s        - Output in JSON format.\n", green, reset)
+	fmt.Printf("  %s--xml%s         - Output in XML format.\n", green, reset)
+	fmt.Printf("  %s--yaml%s        - Output in YAML format.\n", green, reset)
+	fmt.Printf("  %s--log%s         - Enable logging to a file.\n", green, reset)
 
 	fmt.Printf("\n%sExample:%s\n", yellow, reset)
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
@@ -237,8 +318,6 @@ func help() {
 	fmt.Printf("\n%sNote:%s The program will log the output of the command in a file .json, till now it will overwrite the previous content\n", yellow, reset)
 	fmt.Printf("\n%sNote:%s For more details on specific fields, refer to the documentation:\n", yellow, reset)
 	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
-
-	fmt.Printf("  %sTODO%s Add input for more commands in a single input\n", cyan, reset)
 }
 
 func main() {
@@ -246,7 +325,9 @@ func main() {
 		help()
 		return
 	}
-
+	
+	var result interface{}
+	
 	valueTags := []elf.DynTag{
 		elf.DT_PLTRELSZ, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_INIT,
 		elf.DT_FINI, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_GNU_HASH,
@@ -287,26 +368,29 @@ func main() {
 
 	stringTags := []elf.DynTag{
 		elf.DT_NEEDED, elf.DT_SONAME, elf.DT_RPATH, elf.DT_RUNPATH,
-	}
-
+	}   
+	
+	logEnabled := false
+	logFormat := ""
+	
 	fileName := os.Args[1]
 	command := os.Args[2]
 	sectionName := ""
-	if command == "sections" && len(os.Args) >= 4 {
+	if command == "-s"{
 		sectionName = os.Args[3]
 	}
 
 	elfFile, err := load(fileName)
 	if err != nil {
 		fmt.Printf("Error loading file: %v\n", err)
-		return
+		panic(err)
 	}
 	defer elfFile.Close()
 
-	var result interface{}
+
 
 	switch command {
-	case "sections":
+	case "-s":
 		if sectionName == "" {
 			sections := sections(elfFile)
 			result = sections
@@ -318,109 +402,110 @@ func main() {
 			}
 			result = section
 		}
-	case "sym":
+	case "-t":
 		symbols, err := symbolTable(elfFile)
 		if err != nil {
-			fmt.Printf("Error fetching symbols: %v\n", err)
-			return
+			panic(err)
+
 		}
 		result = symbols
-	case "class":
+	case "-c":
 		result = class(elfFile)
-	case "symbols":
+	case "-sy":
 		result = symbols(elfFile)
-	case "dwarf":
+	case "-dw":
 		result, err = DWARF(elfFile)
 		if err != nil {
 			fmt.Printf("Error fetching DWARF data: %v\n", err)
 			return
 		}
-	case "machine":
+	case "-ma":
 		result = machine(elfFile)
 		fmt.Sprintln("for further infos look at: https://pkg.go.dev/debug/elf#Machine")
-	case "entryPoint":
+	case "-e":
 		result = entryPoint(elfFile)
-	case "fileHeader":
+	case "-fh":
 		result = fileHeader(elfFile)
-	case "headers":
+	case "-hs":
 		result = headers(elfFile)
-	case "importSym":
+	case "-is":
+		fmt.Println("Another way for fetching symbols from the file")
 		result, err = ImportedSymbols(elfFile)
 		if err != nil {
-			fmt.Printf("Error fetching imported symbols: %v\n", err)
-			return
+			panic(err)
+			
 		}
-	case "stringTable":
+	case "-st":
 		result = stringTable(elfFile)
-	case "lib":
+	case "-lb":
 		result, err = lib(elfFile)
 		if err != nil {
 			fmt.Printf("Error fetching libraries: %v\n", err)
 			return
 		}
-	case "dynamicSymbols":
+	case "-ds":
 		symbols, err := dynamicSymbols(elfFile)
 		if err != nil {
 			fmt.Printf("Error fetching dynamic symbols: %v\n", err)
 			return
 		}
 		result = symbols
-	case "relocs":
+	case "-re":
 		result = relocs(elfFile)
-	case "sectionsInfo":
+	case "-si":
 		result = sectionsInfo(elfFile)
 
-	case "strings-info":
+	case "-ss":
 		result = processStringTags(elfFile, stringTags)
 
-	case "values-info":
+	case "-vs":
 		result = processValueTags(elfFile, valueTags)
 
-	case "file":
+	case "-fi":
 		result = file(elfFile)
 
 	default:
 		fmt.Println("Unknown command. Valid commands are: dwarf, lib, sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, strings-info, sectionsInfo, values-info")
 		help()
-		return
 	}
-
+	
+	for i := 1; i < len(os.Args)-1; i++ {
+		if os.Args[i] == "--log" {
+			logFormat := strings.ToLower(os.Args[i+1])
+			_, err := saveResult(os.Args[1], result, logFormat)
+			if err!= nil {
+                    continue
+            }
+		}
+	}
+	
+	for i := 3; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		fmt.Print(arg)
+		if arg == "--log" {
+			logEnabled = true
+			if i+1 < len(os.Args) {
+				logFormat = os.Args[i+1]
+				i++ // next arg
+			} else {
+				fmt.Println("Error: File type, json, xml or yaml")
+				panic("Error: File type, json, xml or yaml needed")
+			}
+		}
+	}
+	
+	if logEnabled {
+		if logFormat == "" {
+			panic("Error:  File type, json, xml or yaml")
+		}
+		_, err := saveResult(fileName, result, logFormat)
+		if err != nil {
+			fmt.Printf("Error while saving log: %v\n", err)
+			panic(err)
+		}
+	}
+	
 	// Pretty print the result in JSON format
 	prettyPrintJSON(result)
-
-	so := runtime.GOOS
-
-	if so == "linux" {
-		file, err := os.Create("/var/log/" + fileName + ".json")
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-		bs, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		file.Write(bs)
-		fmt.Println("Logged successfully at /var/log/", fileName+".json")
-
-	} else if so == "windows" {
-
-		file, err := os.Create(fileName + ".json")
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-
-		bs, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		file.Write(bs)
-		fmt.Println("logged successfully in the current directory")
-
-	} else {
-		fmt.Println("Unsupported operating system for logging.")
-		return
-	}
-
 }
+	
