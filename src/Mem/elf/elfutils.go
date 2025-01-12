@@ -3,7 +3,7 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
-// adding more input 
+// adding more input, iterate on a slice of commands and for every command call the respective func
 
 package main
 
