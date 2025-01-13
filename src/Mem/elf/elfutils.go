@@ -5,6 +5,7 @@
 
 // adding more input, iterate on a slice of commands and for every command call the respective func
 
+
 package main
 
 import (
