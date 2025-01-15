@@ -3,8 +3,7 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
-// adding more input, iterate on a slice of commands and for every command call the respective func...
-
+// adding more input
 
 package main
 
@@ -16,9 +15,57 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 
 	"gopkg.in/yaml.v3"
 )
+
+type Item struct {
+	Cmd   string
+	Index int
+}
+
+var valueTags = []elf.DynTag{
+	elf.DT_PLTRELSZ, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_INIT,
+	elf.DT_FINI, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_GNU_HASH,
+	elf.DT_NULL, elf.DT_NEEDED, elf.DT_PLTGOT, elf.DT_HASH,
+	elf.DT_STRTAB, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_RELASZ,
+	elf.DT_RELAENT, elf.DT_STRSZ, elf.DT_SYMENT, elf.DT_INIT,
+	elf.DT_FINI, elf.DT_SONAME, elf.DT_RPATH, elf.DT_SYMBOLIC,
+	elf.DT_REL, elf.DT_RELSZ, elf.DT_RELENT, elf.DT_PLTREL,
+	elf.DT_DEBUG, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_BIND_NOW,
+	elf.DT_INIT_ARRAY, elf.DT_FINI_ARRAY, elf.DT_INIT_ARRAYSZ,
+	elf.DT_FINI_ARRAYSZ, elf.DT_RUNPATH, elf.DT_FLAGS, elf.DT_ENCODING,
+	elf.DT_PREINIT_ARRAY, elf.DT_PREINIT_ARRAYSZ, elf.DT_SYMTAB_SHNDX,
+	elf.DT_LOOS, elf.DT_HIOS, elf.DT_VALRNGLO, elf.DT_GNU_PRELINKED,
+	elf.DT_GNU_CONFLICTSZ, elf.DT_GNU_LIBLISTSZ, elf.DT_CHECKSUM,
+	elf.DT_PLTPADSZ, elf.DT_MOVEENT, elf.DT_MOVESZ, elf.DT_FEATURE,
+	elf.DT_POSFLAG_1, elf.DT_SYMINSZ, elf.DT_SYMINENT, elf.DT_VALRNGHI,
+	elf.DT_ADDRRNGLO, elf.DT_GNU_HASH, elf.DT_TLSDESC_PLT, elf.DT_TLSDESC_GOT,
+	elf.DT_GNU_CONFLICT, elf.DT_GNU_LIBLIST, elf.DT_CONFIG, elf.DT_DEPAUDIT,
+	elf.DT_AUDIT, elf.DT_PLTPAD, elf.DT_MOVETAB, elf.DT_SYMINFO,
+	elf.DT_ADDRRNGHI, elf.DT_VERSYM, elf.DT_RELACOUNT, elf.DT_RELCOUNT,
+	elf.DT_FLAGS_1, elf.DT_VERDEF, elf.DT_VERDEFNUM, elf.DT_VERNEED,
+	elf.DT_VERNEEDNUM, elf.DT_LOPROC, elf.DT_MIPS_RLD_VERSION, elf.DT_MIPS_TIME_STAMP,
+	elf.DT_MIPS_ICHECKSUM, elf.DT_MIPS_IVERSION, elf.DT_MIPS_FLAGS, elf.DT_MIPS_BASE_ADDRESS,
+	elf.DT_MIPS_MSYM, elf.DT_MIPS_CONFLICT, elf.DT_MIPS_LIBLIST, elf.DT_MIPS_LOCAL_GOTNO,
+	elf.DT_MIPS_CONFLICTNO, elf.DT_MIPS_LIBLISTNO, elf.DT_MIPS_SYMTABNO, elf.DT_MIPS_UNREFEXTNO,
+	elf.DT_MIPS_GOTSYM, elf.DT_MIPS_HIPAGENO, elf.DT_MIPS_RLD_MAP, elf.DT_MIPS_DELTA_CLASS,
+	elf.DT_MIPS_DELTA_CLASS_NO, elf.DT_MIPS_DELTA_INSTANCE, elf.DT_MIPS_DELTA_INSTANCE_NO,
+	elf.DT_MIPS_DELTA_RELOC, elf.DT_MIPS_DELTA_RELOC_NO, elf.DT_MIPS_DELTA_SYM,
+	elf.DT_MIPS_DELTA_SYM_NO, elf.DT_MIPS_DELTA_CLASSSYM, elf.DT_MIPS_DELTA_CLASSSYM_NO,
+	elf.DT_MIPS_CXX_FLAGS, elf.DT_MIPS_PIXIE_INIT, elf.DT_MIPS_SYMBOL_LIB, elf.DT_MIPS_LOCALPAGE_GOTIDX,
+	elf.DT_MIPS_LOCAL_GOTIDX, elf.DT_MIPS_HIDDEN_GOTIDX, elf.DT_MIPS_PROTECTED_GOTIDX, elf.DT_MIPS_OPTIONS,
+	elf.DT_MIPS_INTERFACE, elf.DT_MIPS_DYNSTR_ALIGN, elf.DT_MIPS_INTERFACE_SIZE, elf.DT_MIPS_RLD_TEXT_RESOLVE_ADDR,
+	elf.DT_MIPS_PERF_SUFFIX, elf.DT_MIPS_COMPACT_SIZE, elf.DT_MIPS_GP_VALUE, elf.DT_MIPS_AUX_DYNAMIC,
+	elf.DT_MIPS_PLTGOT, elf.DT_MIPS_RWPLT, elf.DT_MIPS_RLD_MAP_REL, elf.DT_PPC_GOT, elf.DT_PPC_OPT,
+	elf.DT_PPC64_GLINK, elf.DT_PPC64_OPD, elf.DT_PPC64_OPDSZ, elf.DT_PPC64_OPT, elf.DT_SPARC_REGISTER,
+	elf.DT_AUXILIARY, elf.DT_USED, elf.DT_FILTER, elf.DT_HIPROC,
+}
+
+var stringTags = []elf.DynTag{
+	elf.DT_NEEDED, elf.DT_SONAME, elf.DT_RPATH, elf.DT_RUNPATH,
+}
 
 func load(fileName string) (*elf.File, error) {
 	file, err := elf.Open(fileName)
@@ -100,12 +147,15 @@ func sectionByName(f *elf.File, name string) any {
 	return nil
 }
 
-func headers(f *elf.File) any {
-	fmt.Println("\nProgram Headers:")
+func headers(f *elf.File) []string {
+	var headersInfo []string
 	for _, progHeader := range f.Progs {
-		return fmt.Sprintf("Type: %v, Offset: 0x%x, Virtual Address: 0x%x\n", progHeader.Type, progHeader.Off, progHeader.Vaddr, progHeader.ProgHeader, progHeader.Flags, progHeader.Memsz, progHeader.Filesz)
+		headersInfo = append(headersInfo, fmt.Sprintf(
+			"Type: %v, Offset: 0x%x, Virtual Address: 0x%x, Flags: %v, MemSize: 0x%x, FileSize: 0x%x",
+			progHeader.Type, progHeader.Off, progHeader.Vaddr, progHeader.Flags, progHeader.Memsz, progHeader.Filesz,
+		))
 	}
-	return f.Progs
+	return headersInfo
 }
 
 func fileHeader(f *elf.File) any {
@@ -126,7 +176,7 @@ func dynamicSymbols(f *elf.File) ([]elf.Symbol, error) {
 }
 
 func relocs(f *elf.File) *elf.Section {
-	return f.Section(".strtab")
+	return f.Section(".rel")
 }
 
 func sectionsInfo(f *elf.File) []string {
@@ -145,21 +195,21 @@ func ImportedSymbols(f *elf.File) (any, error) {
 	return sym, nil
 }
 
-func symbols(f *elf.File) any {
+func symbols(f *elf.File) []string {
+	var symbolsInfo []string
 	sym, err := f.Symbols()
 	if err != nil {
-		fmt.Println("Error while getting data", err)
-		return err
+		symbolsInfo = append(symbolsInfo, fmt.Sprintf("Error while getting symbols: %v", err))
+		return symbolsInfo
 	}
 	if len(sym) > 0 {
-		fmt.Println("\nSymbols:")
 		for _, symbol := range sym {
-			return fmt.Sprintf("Symbol Name: %s, Value: 0x%x\n", symbol.Name, symbol.Value)
+			symbolsInfo = append(symbolsInfo, fmt.Sprintf("Symbol Name: %s, Value: 0x%x", symbol.Name, symbol.Value))
 		}
 	} else {
-		return fmt.Sprintf("No symbols found")
+		symbolsInfo = append(symbolsInfo, "No symbols found")
 	}
-	return nil
+	return symbolsInfo
 }
 
 func file(f *elf.File) any {
@@ -322,66 +372,63 @@ func help() {
 	fmt.Printf("  %shttps://pkg.go.dev/debug/elf%s\n", cyan, reset)
 }
 
+func executeCommand(elfFile *elf.File, command string, sectionName string) (any, error) {
+	switch command {
+	case "-s":
+		if sectionName == "" {
+			return sections(elfFile), nil
+		}
+		section := sectionByName(elfFile, sectionName)
+		if section == nil {
+			return nil, fmt.Errorf("Section %s not found", sectionName)
+		}
+		return section, nil
+	case "-t":
+		return symbolTable(elfFile)
+	case "-c":
+		return class(elfFile), nil
+	case "-sy":
+		return symbols(elfFile), nil
+	case "-dw":
+		return DWARF(elfFile)
+	case "-ma":
+		return machine(elfFile), nil
+	case "-e":
+		return entryPoint(elfFile), nil
+	case "-fh":
+		return fileHeader(elfFile), nil
+	case "-hs":
+		return headers(elfFile), nil
+	case "-is":
+		return ImportedSymbols(elfFile)
+	case "-st":
+		return stringTable(elfFile), nil
+	case "-lb":
+		return lib(elfFile)
+	case "-ds":
+		return dynamicSymbols(elfFile)
+	case "-re":
+		return relocs(elfFile), nil
+	case "-si":
+		return sectionsInfo(elfFile), nil
+	case "-ss":
+		return processStringTags(elfFile, stringTags), nil
+	case "-vs":
+		return processValueTags(elfFile, valueTags), nil
+	case "-fi":
+		return file(elfFile), nil
+	default:
+		return nil, fmt.Errorf("Unknown command: %s", command)
+	}
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		help()
 		return
 	}
 
-	var result interface{}
-
-	valueTags := []elf.DynTag{
-		elf.DT_PLTRELSZ, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_INIT,
-		elf.DT_FINI, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_GNU_HASH,
-		elf.DT_NULL, elf.DT_NEEDED, elf.DT_PLTGOT, elf.DT_HASH,
-		elf.DT_STRTAB, elf.DT_SYMTAB, elf.DT_RELA, elf.DT_RELASZ,
-		elf.DT_RELAENT, elf.DT_STRSZ, elf.DT_SYMENT, elf.DT_INIT,
-		elf.DT_FINI, elf.DT_SONAME, elf.DT_RPATH, elf.DT_SYMBOLIC,
-		elf.DT_REL, elf.DT_RELSZ, elf.DT_RELENT, elf.DT_PLTREL,
-		elf.DT_DEBUG, elf.DT_TEXTREL, elf.DT_JMPREL, elf.DT_BIND_NOW,
-		elf.DT_INIT_ARRAY, elf.DT_FINI_ARRAY, elf.DT_INIT_ARRAYSZ,
-		elf.DT_FINI_ARRAYSZ, elf.DT_RUNPATH, elf.DT_FLAGS, elf.DT_ENCODING,
-		elf.DT_PREINIT_ARRAY, elf.DT_PREINIT_ARRAYSZ, elf.DT_SYMTAB_SHNDX,
-		elf.DT_LOOS, elf.DT_HIOS, elf.DT_VALRNGLO, elf.DT_GNU_PRELINKED,
-		elf.DT_GNU_CONFLICTSZ, elf.DT_GNU_LIBLISTSZ, elf.DT_CHECKSUM,
-		elf.DT_PLTPADSZ, elf.DT_MOVEENT, elf.DT_MOVESZ, elf.DT_FEATURE,
-		elf.DT_POSFLAG_1, elf.DT_SYMINSZ, elf.DT_SYMINENT, elf.DT_VALRNGHI,
-		elf.DT_ADDRRNGLO, elf.DT_GNU_HASH, elf.DT_TLSDESC_PLT, elf.DT_TLSDESC_GOT,
-		elf.DT_GNU_CONFLICT, elf.DT_GNU_LIBLIST, elf.DT_CONFIG, elf.DT_DEPAUDIT,
-		elf.DT_AUDIT, elf.DT_PLTPAD, elf.DT_MOVETAB, elf.DT_SYMINFO,
-		elf.DT_ADDRRNGHI, elf.DT_VERSYM, elf.DT_RELACOUNT, elf.DT_RELCOUNT,
-		elf.DT_FLAGS_1, elf.DT_VERDEF, elf.DT_VERDEFNUM, elf.DT_VERNEED,
-		elf.DT_VERNEEDNUM, elf.DT_LOPROC, elf.DT_MIPS_RLD_VERSION, elf.DT_MIPS_TIME_STAMP,
-		elf.DT_MIPS_ICHECKSUM, elf.DT_MIPS_IVERSION, elf.DT_MIPS_FLAGS, elf.DT_MIPS_BASE_ADDRESS,
-		elf.DT_MIPS_MSYM, elf.DT_MIPS_CONFLICT, elf.DT_MIPS_LIBLIST, elf.DT_MIPS_LOCAL_GOTNO,
-		elf.DT_MIPS_CONFLICTNO, elf.DT_MIPS_LIBLISTNO, elf.DT_MIPS_SYMTABNO, elf.DT_MIPS_UNREFEXTNO,
-		elf.DT_MIPS_GOTSYM, elf.DT_MIPS_HIPAGENO, elf.DT_MIPS_RLD_MAP, elf.DT_MIPS_DELTA_CLASS,
-		elf.DT_MIPS_DELTA_CLASS_NO, elf.DT_MIPS_DELTA_INSTANCE, elf.DT_MIPS_DELTA_INSTANCE_NO,
-		elf.DT_MIPS_DELTA_RELOC, elf.DT_MIPS_DELTA_RELOC_NO, elf.DT_MIPS_DELTA_SYM,
-		elf.DT_MIPS_DELTA_SYM_NO, elf.DT_MIPS_DELTA_CLASSSYM, elf.DT_MIPS_DELTA_CLASSSYM_NO,
-		elf.DT_MIPS_CXX_FLAGS, elf.DT_MIPS_PIXIE_INIT, elf.DT_MIPS_SYMBOL_LIB, elf.DT_MIPS_LOCALPAGE_GOTIDX,
-		elf.DT_MIPS_LOCAL_GOTIDX, elf.DT_MIPS_HIDDEN_GOTIDX, elf.DT_MIPS_PROTECTED_GOTIDX, elf.DT_MIPS_OPTIONS,
-		elf.DT_MIPS_INTERFACE, elf.DT_MIPS_DYNSTR_ALIGN, elf.DT_MIPS_INTERFACE_SIZE, elf.DT_MIPS_RLD_TEXT_RESOLVE_ADDR,
-		elf.DT_MIPS_PERF_SUFFIX, elf.DT_MIPS_COMPACT_SIZE, elf.DT_MIPS_GP_VALUE, elf.DT_MIPS_AUX_DYNAMIC,
-		elf.DT_MIPS_PLTGOT, elf.DT_MIPS_RWPLT, elf.DT_MIPS_RLD_MAP_REL, elf.DT_PPC_GOT, elf.DT_PPC_OPT,
-		elf.DT_PPC64_GLINK, elf.DT_PPC64_OPD, elf.DT_PPC64_OPDSZ, elf.DT_PPC64_OPT, elf.DT_SPARC_REGISTER,
-		elf.DT_AUXILIARY, elf.DT_USED, elf.DT_FILTER, elf.DT_HIPROC,
-	}
-
-	stringTags := []elf.DynTag{
-		elf.DT_NEEDED, elf.DT_SONAME, elf.DT_RPATH, elf.DT_RUNPATH,
-	}
-
-	logEnabled := false
-	logFormat := ""
-
 	fileName := os.Args[1]
-	command := os.Args[2]
-	sectionName := ""
-	if command == "-s" {
-		sectionName = os.Args[3]
-	}
-
 	elfFile, err := load(fileName)
 	if err != nil {
 		fmt.Printf("Error loading file: %v\n", err)
@@ -389,111 +436,59 @@ func main() {
 	}
 	defer elfFile.Close()
 
-	switch command {
-	case "-s":
-		if sectionName == "" {
-			sections := sections(elfFile)
-			result = sections
-		} else {
-			section := sectionByName(elfFile, sectionName)
-			if section == nil {
-				fmt.Printf("Section %s not found.\n", sectionName)
-				return
-			}
-			result = section
+	// Parsing commands and their order
+	var items []Item
+	for i := 2; i < len(os.Args); i++ {
+		if os.Args[i] == "--log" {
+			break // end of the commands list
 		}
-	case "-t":
-		symbols, err := symbolTable(elfFile)
-		if err != nil {
-			panic(err)
-
-		}
-		result = symbols
-	case "-c":
-		result = class(elfFile)
-	case "-sy":
-		result = symbols(elfFile)
-	case "-dw":
-		result, err = DWARF(elfFile)
-		if err != nil {
-			fmt.Printf("Error fetching DWARF data: %v\n", err)
-			return
-		}
-	case "-ma":
-		result = machine(elfFile)
-		fmt.Sprintln("for further infos look at: https://pkg.go.dev/debug/elf#Machine")
-	case "-e":
-		result = entryPoint(elfFile)
-	case "-fh":
-		result = fileHeader(elfFile)
-	case "-hs":
-		result = headers(elfFile)
-	case "-is":
-		fmt.Println("Another way for fetching symbols from the file")
-		result, err = ImportedSymbols(elfFile)
-		if err != nil {
-			panic(err)
-
-		}
-	case "-st":
-		result = stringTable(elfFile)
-	case "-lb":
-		result, err = lib(elfFile)
-		if err != nil {
-			fmt.Printf("Error fetching libraries: %v\n", err)
-			return
-		}
-	case "-ds":
-		symbols, err := dynamicSymbols(elfFile)
-		if err != nil {
-			fmt.Printf("Error fetching dynamic symbols: %v\n", err)
-			return
-		}
-		result = symbols
-	case "-re":
-		result = relocs(elfFile)
-	case "-si":
-		result = sectionsInfo(elfFile)
-
-	case "-ss":
-		result = processStringTags(elfFile, stringTags)
-
-	case "-vs":
-		result = processValueTags(elfFile, valueTags)
-
-	case "-fi":
-		result = file(elfFile)
-
-	default:
-		fmt.Println("Unknown command. Valid commands are: dwarf, lib, sections, sym, class, machine, entryPoint, fileHeader, stringTable, dynamicSymbols, relocs, strings-info, sectionsInfo, values-info")
-		help()
+		items = append(items, Item{Cmd: os.Args[i], Index: i - 2})
 	}
 
+	// ording commands with their index
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Index < items[j].Index
+	})
+
+	//executing commands in order
+	var results []any
+	for _, item := range items {
+		result, err := executeCommand(elfFile, item.Cmd, "")
+		if err != nil {
+			fmt.Printf("Error executing command %s: %v\n", item.Cmd, err)
+			continue
+		}
+		results = append(results, map[string]any{item.Cmd: result})
+	}
+
+	// verify if logging is enabled
+	logEnabled := false
+	logFormat := ""
 	for i := 3; i < len(os.Args); i++ {
 		arg := os.Args[i]
 		if arg == "--log" {
 			logEnabled = true
 			if i+1 < len(os.Args) {
 				logFormat = os.Args[i+1]
-				i++ // next arg
+				i++ // skip format
 			} else {
-				fmt.Println("Error: File type, json, xml or yaml")
-				panic("Error: File type, json, xml or yaml needed")
+				fmt.Println("Error: Specify file type: json, xml, or yaml")
+				panic("Missing log format")
 			}
 		}
 	}
 
+	// Logging 
 	if logEnabled {
 		if logFormat == "" {
-			panic("Error:  File type, json, xml or yaml")
+			panic("Error: Missing log format")
 		}
-		_, err := saveResult(fileName, result, logFormat)
+		_, err := saveResult(fileName, results, logFormat)
 		if err != nil {
 			fmt.Printf("Error while saving log: %v\n", err)
 			panic(err)
 		}
 	}
 
-	// Pretty print the result in JSON format
-	prettyPrintJSON(result)
+	prettyPrintJSON(results)
 }
