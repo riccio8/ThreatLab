@@ -3,7 +3,6 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
-// adding more input
 
 package main
 
@@ -356,6 +355,7 @@ func help() {
 	fmt.Printf("  %s-ss%s             - List string-based dynamic tags.\n", green, reset)
 	fmt.Printf("  %s-vs%s             - List numeric-based dynamic tags.\n", green, reset)
 	fmt.Printf("  %s-fi%s             - Returns some general infos about the file.\n", green, reset)
+	fmt.Print("-h or --help for help commands.\n")
 
 	fmt.Printf("\n%sLog options:%s\n", yellow, reset)
 	fmt.Printf("  %s--json%s        - Output in JSON format.\n", green, reset)
@@ -417,10 +417,16 @@ func executeCommand(elfFile *elf.File, command string, sectionName string) (any,
 		return processValueTags(elfFile, valueTags), nil
 	case "-fi":
 		return file(elfFile), nil
+	case "-h":
+		help()
+	case "--help":
+		help()
 	default:
 		return nil, fmt.Errorf("Unknown command: %s", command)
 	}
+	return 0, nil
 }
+
 
 func main() {
 	if len(os.Args) < 3 {
@@ -452,6 +458,7 @@ func main() {
 
 	//executing commands in order
 	var results []any
+	
 	for _, item := range items {
 		result, err := executeCommand(elfFile, item.Cmd, "")
 		if err != nil {
