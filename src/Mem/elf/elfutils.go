@@ -361,7 +361,7 @@ func help() {
 	fmt.Printf("  %s--json%s        - Output in JSON format.\n", green, reset)
 	fmt.Printf("  %s--xml%s         - Output in XML format.\n", green, reset)
 	fmt.Printf("  %s--yaml%s        - Output in YAML format.\n", green, reset)
-	fmt.Printf("  %s--log%s         - Enable logging to a file.\n", green, reset)
+	fmt.Printf("  %s--log%s         - Enable logging to a file, put that at the end.\n", green, reset)
 
 	fmt.Printf("\n%sExample:%s\n", yellow, reset)
 	fmt.Printf("  %s./elfutils.exe%s %smyfile.elf%s %ssections%s\n", cyan, reset, green, reset, red, reset)
