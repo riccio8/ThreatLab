@@ -3,6 +3,7 @@
  * License: https://github.com/riccio8/ThreatLab/blob/main/LICENSE
  */
 
+// dnk why xmml doesn't work and doesn't recognize section specific
 
 package main
 
