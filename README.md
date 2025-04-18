@@ -43,6 +43,7 @@ This repository includes a collection of tools, resources and libraries designed
 - **Assembly**: For low-level system manipulation.  
 - **C++**: High-performance process and memory handling tools.  
 - **Golang**: Lightweight and efficient network and process utilities.  
+- **Rust**: Efficient, fast and memory safety 
 - **Python**: Scripting for process automation and vulnerability detection.  
 - **YARA**: Advanced threat detection through rule-based signatures.
 
