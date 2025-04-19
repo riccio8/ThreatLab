@@ -1,6 +1,8 @@
 use reqwest::Client;
 use std::error::Error;
 
+use regex::Regex;
+
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
@@ -36,15 +38,56 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
     // parser("feed.xml".to_string())?;
     
-    let url= format!("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={}", version);
+    // let version1 = version.retain(|s| s != "")
+    
+    
+    let re = Regex::new(r"https?://(?P<name>[^\.]+)\.org/\?v=(?P<version>[\d\.]+)").unwrap();
+
+    let mut version1 = String::new();
+
+    if let Some(caps) = re.captures(&version) {
+        let name = &caps["name"];
+        let version = &caps["version"];
+
+        version1 = format!("{}-v={}", name, version);
+    }
+    let url= format!("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={}", version1);
         
-    println!("{}", version);
+    
+    println!("{}", version1);
 
     match openBrowser(&url) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("Trying in another way beacuse of error {}...", e);
             if let Err(er) = openBrowser2(&url){
+                eprintln!("Fallbask failed too: \n{}", er);
+            }
+
+        }
+    }
+    let mut version2 = String::new();
+
+    let re = Regex::new(r"https?://(?P<name>[^\.]+)\.org/\?v=(?P<version>[\d\.]+)").unwrap();
+   
+    if let Some(caps) = re.captures(&version) {
+        let name = &caps["name"];                    // "wordpress"
+        let version_raw = &caps["version"];          // "6.1"
+        let version_formatted = version_raw.replace(".", "+"); // "6+1"
+
+        version2 = format!("{}+{}", name, version_formatted);
+        
+    } else {
+        println!("Not valid url");
+    }  
+
+    let url1 = format!("https://www.cve.org/CVERecord/SearchResults?query={}", version2);
+
+    match openBrowser(&url1) {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("Trying in another way beacuse of error {}...", e);
+            if let Err(er) = openBrowser2(&url1){
                 eprintln!("Fallbask failed too: \n{}", er);
             }
 
