@@ -7,6 +7,12 @@ use quick_xml::reader::Reader;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt; // for write_all()
 
+use webbrowser;
+
+use std::process::Command;
+use std::env::consts::OS;
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let url = "https://awesomemotive.com/feed";
@@ -15,20 +21,38 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     let response = client.get(url).send().await?;
     
+    let mut version: String = String::new();
+
     if response.status().is_success() {
         let body = response.text().await?; 
         save_feed(&body).await?;    
         println!("File feed.xml saved successfully");
-        match parser(&body){
-            Ok(content) => println!("Wordpress generator content:\n {}", content),
-            Err(e) => {println!("Error while getting content, trying in another way... \n Error:\t{}", e);
-                    find(&body);
-            }
-        }
+        version = match parser(&body){
+            Ok(content) => content,
+            Err(_) => find(&body).to_string(),
+        };
     } else {
         eprintln!("Error in request: \n {} \n", response.status());
     }
     // parser("feed.xml".to_string())?;
+    
+    let url= format!("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={}", version);
+        
+    println!("{}", version);
+
+    match openBrowser(&url) {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("Trying in another way beacuse of error {}...", e);
+            if let Err(er) = openBrowser2(&url){
+                eprintln!("Fallbask failed too: \n{}", er);
+            }
+
+        }
+    }
+
+
+    
     Ok(())
 }
 async fn save_feed(text: &String) -> Result<(),Box<dyn Error>>{
@@ -39,12 +63,13 @@ async fn save_feed(text: &String) -> Result<(),Box<dyn Error>>{
 }
 
 // if parser fails
-fn find(text: &String){
+fn find(text: &String) -> &str{
     for line in text.lines(){
         if line.contains("generator"){
-            println!("Version found at line {}", line);
+            return line;
         }
     }
+    &"Not found"
 }
 
 
@@ -83,4 +108,41 @@ fn parser(xml: &str) -> Result<String,Box<dyn Error>>{
     }
     
     Err("No <generator> tag found".into())
+}
+
+#[allow(non_snake_case)]
+fn openBrowser2(url: &str) -> Result<(),Box<dyn Error>>{
+    if webbrowser::open(url).is_ok(){
+        Ok(())
+    }else {
+      Err("Failed to open browser".into()) 
+    }
+}
+#[allow(non_snake_case)]
+fn openBrowser(url: &str) -> Result<(), Box<dyn Error>> {
+    match OS{
+        "windows" => {
+            Command::new("cmd")
+            .args(["/C", "start", url])
+            .spawn()?;
+            Ok(())
+        }
+
+        "macos" => {
+            Command::new("open")
+            .arg(url)
+            .spawn()?;
+            Ok(())
+        }
+
+        "linux" => {
+            Command::new("xdg-open")
+            .arg(url)
+            .spawn()?;
+            Ok(())
+        }
+
+        _ => {eprintln!("Not supported OS");
+            Ok(())}
+    }
 }
