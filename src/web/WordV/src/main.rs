@@ -1,4 +1,4 @@
-use reqwest::Client;
+
 use std::error::Error;
 
 use regex::Regex;
@@ -121,7 +121,7 @@ fn parser(xml: &str) -> Result<String,Box<dyn Error>>{
     // reader.trim_text(true);
 
     let mut buf = Vec::new();
-    let mut inside_tag = false;
+    let mut inside_tag: bool = false;
 
     loop{
         match reader.read_event_into(&mut buf){
@@ -189,3 +189,19 @@ fn openBrowser(url: &str) -> Result<(), Box<dyn Error>> {
             Ok(())}
     }
 }
+
+
+
+//for finding servers version i can use a request where i get theheader using like curl -I url --ssl-no-revoke 
+//--ssl-no-revoke for skipping problems in windows
+//then i'll use a regex for finding the string, it looks like this: 
+//C:\Users\ricci>curl -I http://mirror.cogentco.com/ --ssl-no-revoke
+// HTTP/1.1 200 OK
+// Date: Mon, 21 Apr 2025 09:47:53 GMT
+// Server: Apache/2.4.37 (AlmaLinux) OpenSSL/1.1.1k mod_auth_gssapi/1.6.1
+// Last-Modified: Fri, 07 Jan 2022 03:05:20 GMT
+// ETag: "1165-5d4f541d56f48"
+// Accept-Ranges: bytes
+// Content-Length: 4453
+// Content-Type: text/html; charset=UTF-8
+//
