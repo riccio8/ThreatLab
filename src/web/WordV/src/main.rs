@@ -205,4 +205,4 @@ fn openBrowser(url: &str) -> Result<(), Box<dyn Error>> {
 // Content-Length: 4453
 // Content-Type: text/html; charset=UTF-8
 //
-//regex= r"Server:\s(?P<version>[A-Z]?[a-z]*/\d+\.\d+\.\d+\.*)\s(?P<infos>.*)"
+//regex= r"(?P<server_str>Server:\s*)(?P<version>[A-Z]?[a-z]*/\d+\.\d+(?:\.\d+)?)\s(?P<infos>.*)"
