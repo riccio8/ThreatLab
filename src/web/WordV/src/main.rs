@@ -1,3 +1,4 @@
+
 use std::error::Error;
 
 use regex::Regex;
@@ -37,9 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
     // parser("feed.xml".to_string())?;
     
-    // let version1 = version.retain(|s| s != "")
-    
-    
+      
     let re = Regex::new(r"https?://(?P<name>[^\.]+)\.org/\?v=(?P<version>[\d\.]+)").unwrap();
 
     let mut version1 = String::new();
@@ -63,7 +62,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 eprintln!("Fallbask failed too: \n{}", er);
             }
 
-        }
+ }
     }
     let mut version2 = String::new();
 
@@ -113,7 +112,6 @@ fn find(text: &String) -> &str{
     }
     &"Not found"
 }
-
 
 fn parser(xml: &str) -> Result<String,Box<dyn Error>>{
     let mut reader = Reader::from_str(xml);
@@ -189,6 +187,43 @@ fn openBrowser(url: &str) -> Result<(), Box<dyn Error>> {
     }
 }
 
+
+fn curl(url: &str, os: &str) -> Result<String, Box<dyn Error>> {
+    let output = match os {
+        "windows" => {
+            Command::new("cmd")
+                .args(["/C", "curl", "--ssl-no-revoke", "-I", url])
+                .output()?
+        }
+        "macos" | "linux" => {
+            Command::new("curl")
+                .args(["--ssl-no-revoke", "-I", url])
+                .output()?
+        }
+        _ => {
+            eprintln!("Unsupported OS");
+            return Err("Unsupported OS".into());
+        }
+    };
+
+    let result = String::from_utf8(output.stdout)?; 
+    Ok(result)
+}
+
+// ser_ver<'a> for lifetimes thing
+fn ser_ver(ver: &str) -> Result<String, Box <dyn Error>>{
+    let reg = Regex::new(r"(?P<server_str>Server:\s*?)(?P<version>[A-Z]?[a-z]*/\d+\.\d+(?:\.\d+)?)\s+?(?P<infos>.*)?")?;
+    
+    if let Some(caps) = reg.captures(ver) {
+        // let infos = &caps["infos"];                    
+        let version_raw = caps["version"].to_string();
+        Ok(version_raw)
+
+    } else {
+        eprintln!("Not valid sever string");
+        Err("Invalid server string".into())
+    }  
+}
 
 
 //for finding servers version i can use a request where i get theheader using like curl -I url --ssl-no-revoke 
