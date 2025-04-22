@@ -1,4 +1,4 @@
-use reqwest::Client;
+
 use std::error::Error;
 
 use regex::Regex;
