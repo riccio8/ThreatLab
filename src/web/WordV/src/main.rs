@@ -47,18 +47,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let name = &caps["name"];
         let version = &caps["version"];
 
-        version1 = format!("{}-v={}", name, version);
+        version1 = format!("{} v={}", name, version);
     }
     let url= format!("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={}", version1);
 
 
-    println!("{}", version1);
+    println!("{} {}", &version1, &url);
 
-    match openBrowser(&url) {
+    match openBrowser2(&url) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("Trying in another way beacuse of error {}...", e);
-            if let Err(er) = openBrowser2(&url){
+            if let Err(er) = openBrowser(&url){
                 eprintln!("Fallbask failed too: \n{}", er);
             }
 
@@ -236,4 +236,3 @@ fn ser_ver(ver: String) -> Result<String, Box <dyn Error>>{
         Err("Invalid server string".into())
     }
 }
-
